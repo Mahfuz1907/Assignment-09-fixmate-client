@@ -1,6 +1,5 @@
 import type { SVGProps } from "react";
 import Link from "next/link";
-import { cacheLife } from "next/cache";
 import {
   Clock,
   Mail,
@@ -148,15 +147,12 @@ function ColumnHeading({ children }: { children: string }) {
   );
 }
 
-async function getCopyrightYear() {
-  "use cache";
-  cacheLife("max");
-
+function getCopyrightYear() {
   return new Date().getFullYear();
 }
 
-const Footer = async () => {
-  const year = await getCopyrightYear();
+const Footer = () => {
+  const year = getCopyrightYear();
 
   return (
     <footer className="relative mt-24 overflow-hidden rounded-t-[2rem] border-t border-white/10 bg-zinc-950 text-zinc-300 sm:rounded-t-[2.5rem]">
@@ -188,8 +184,8 @@ const Footer = async () => {
                 Good fixes start with good advice.
               </h2>
               <p className="mt-2 max-w-md text-sm leading-6 text-zinc-400">
-                Monthly maintenance tips and seasonal checklists. No spam —
-                just the useful stuff.
+                Monthly maintenance tips and seasonal checklists. No spam — just
+                the useful stuff.
               </p>
             </div>
             <NewsletterForm />
@@ -274,7 +270,10 @@ const Footer = async () => {
                 const ContactIcon = item.icon;
 
                 return (
-                  <div key={item.label} className="group flex items-start gap-3">
+                  <div
+                    key={item.label}
+                    className="group flex items-start gap-3"
+                  >
                     <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-amber-400 transition-colors group-hover:border-amber-500/40">
                       <ContactIcon className="size-4" aria-hidden="true" />
                     </span>

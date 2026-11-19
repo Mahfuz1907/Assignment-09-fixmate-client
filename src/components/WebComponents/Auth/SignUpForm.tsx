@@ -151,6 +151,9 @@ export function SignUpForm() {
       email: userData.email,
       password: userData.password,
       role: userData.role,
+      phone: "",
+      area: "",
+      bio: "",
     });
 
     if (data) {

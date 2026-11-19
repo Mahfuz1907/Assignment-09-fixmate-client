@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/WebComponents/Navbar/Navbar";
 import Footer from "@/components/WebComponents/Footer/Footer";
 import { Toaster } from "sonner";
+import { Metadata } from "next";
+import LayoutComponent from "@/components/LayoutComponent/LayoutComponent";
 
 const pjs = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -17,7 +18,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // const pathname = usePathname();
+  // const isDashboard = pathname?.startsWith("/dashboard");
+
   return (
     <html
       lang="en"
@@ -25,9 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        <main className="grow">{children}</main>
-        <Footer />
+        <LayoutComponent>{children}</LayoutComponent>
         <Toaster />
       </body>
     </html>
