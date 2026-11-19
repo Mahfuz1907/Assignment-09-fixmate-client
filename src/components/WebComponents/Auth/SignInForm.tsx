@@ -33,7 +33,6 @@ export function SignInForm() {
   });
   const [errors, setErrors] = useState<SignInErrors>({});
   const [rememberMe, setRememberMe] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   function handleChange(field: keyof SignInValues) {
@@ -81,8 +80,6 @@ export function SignInForm() {
       setErrors(newErrors);
       return;
     }
-
-    setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
     const formEntries = Object.fromEntries(formData);
@@ -188,26 +185,13 @@ export function SignInForm() {
 
         <Button
           type="submit"
-          disabled={isSubmitting}
           className="group mt-1 h-11 w-full rounded-xl bg-linear-to-r from-amber-400 via-amber-500 to-orange-500 text-sm font-semibold text-zinc-950 shadow-[0_14px_30px_-14px_rgba(245,158,11,0.9)] hover:from-amber-300 hover:via-amber-400 hover:to-orange-500 disabled:opacity-70"
         >
-          {isSubmitting ? (
-            <>
-              <LoaderCircle
-                className="size-4 animate-spin"
-                aria-hidden="true"
-              />
-              Signing in…
-            </>
-          ) : (
-            <>
-              Sign in
-              <ArrowRight
-                className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                aria-hidden="true"
-              />
-            </>
-          )}
+          Sign in
+          <ArrowRight
+            className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
         </Button>
       </form>
 
