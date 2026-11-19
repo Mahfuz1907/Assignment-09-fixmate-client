@@ -6,7 +6,13 @@ import { ArrowRight, Clock, MapPin, User, Wrench } from "lucide-react";
 import type { IService } from "@/library/type";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface ServiceCardProps {
   service: IService;
@@ -19,7 +25,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
     <Card className="group flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-amber-500/40">
       <div>
         {/* Image & Badges */}
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+        <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
           <Image
             src={service.image}
             alt={service.title}
@@ -27,7 +33,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
 
           {/* Category Badge */}
           <div className="absolute left-3 top-3">
@@ -76,7 +82,10 @@ export function ServiceCard({ service }: ServiceCardProps) {
           <div className="flex items-center gap-2">
             <User className="size-3.5 shrink-0 text-amber-500" />
             <span className="truncate">
-              Technician: <strong className="font-medium text-foreground">{service.technicianName}</strong>
+              Technician:{" "}
+              <strong className="font-medium text-foreground">
+                {service.technicianName}
+              </strong>
             </span>
           </div>
 
@@ -115,12 +124,16 @@ interface FeaturedServicesProps {
 export function FeaturedServices({ initialServices }: FeaturedServicesProps) {
   // If services are passed (or fetched from DB), filter approvalStatus === 'approved' and isAvailable === true,
   // sorted by createdAt desc, limited to 6.
-  const servicesToDisplay = (initialServices || []).length > 0
-    ? [...initialServices!]
-        .filter((s) => s.approvalStatus === "approved" && s.isAvailable)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 6)
-    : [];
+  const servicesToDisplay =
+    (initialServices || []).length > 0
+      ? [...initialServices!]
+          .filter((s) => s.approvalStatus === "approved" && s.isAvailable)
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )
+          .slice(0, 6)
+      : [];
 
   return (
     <section className="py-16 sm:py-20 bg-muted/30">
@@ -139,12 +152,16 @@ export function FeaturedServices({ initialServices }: FeaturedServicesProps) {
               Featured Repair Services
             </h2>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
-              Explore our most requested repair and maintenance services handled by top-rated certified technicians.
+              Explore our most requested repair and maintenance services handled
+              by top-rated certified technicians.
             </p>
           </div>
 
           <Link href="/services">
-            <Button variant="outline" className="hidden rounded-xl md:flex gap-1.5 font-semibold">
+            <Button
+              variant="outline"
+              className="hidden rounded-xl md:flex gap-1.5 font-semibold"
+            >
               View All Services
               <ArrowRight className="size-4" />
             </Button>
@@ -163,7 +180,10 @@ export function FeaturedServices({ initialServices }: FeaturedServicesProps) {
         {/* Mobile View All Button */}
         <div className="mt-8 flex justify-center md:hidden">
           <Link href="/services" className="w-full">
-            <Button variant="outline" className="w-full rounded-xl gap-2 font-semibold">
+            <Button
+              variant="outline"
+              className="w-full rounded-xl gap-2 font-semibold"
+            >
               View All Services
               <ArrowRight className="size-4" />
             </Button>

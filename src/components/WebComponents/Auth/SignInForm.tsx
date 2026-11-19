@@ -14,9 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { PasswordField, TextField } from "./AuthFields";
-import { GoogleButton } from "./AuthSocial";
 
 type SignInValues = {
   email: string;
@@ -61,18 +59,48 @@ export function SignInForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrors({});
+
+    const newErrors: SignInErrors = {};
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!values.email.trim()) {
+      newErrors.email = "Please enter your email address.";
+    } else if (!emailRegex.test(values.email.trim())) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    if (!values.password) {
+      newErrors.password = "Please enter your password.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsSubmitting(true);
 
+    const formData = new FormData(event.currentTarget);
+    const formEntries = Object.fromEntries(formData);
+
+    // Normalized user credentials ready for auth provider (BetterAuth, etc.)
+    const userData = {
+      ...formEntries,
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+      rememberMe: rememberMe,
+    };
+
+    console.log("Sign in userData:", userData);
+
     try {
-      // Authentication logic goes here.
+      // Authentication logic / BetterAuth call goes here:
+      // await authClient.signIn.email({ email: userData.email, password: userData.password, rememberMe: userData.rememberMe });
+    } catch (err) {
+      console.error("Sign in error:", err);
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  /** Stub — start the BetterAuth Google OAuth flow (defaults to the `customer` role). */
-  async function handleGoogleSignIn() {
-    // Google sign-in logic goes here.
   }
 
   return (
@@ -156,7 +184,10 @@ export function SignInForm() {
         >
           {isSubmitting ? (
             <>
-              <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+              <LoaderCircle
+                className="size-4 animate-spin"
+                aria-hidden="true"
+              />
               Signing in…
             </>
           ) : (
@@ -169,16 +200,6 @@ export function SignInForm() {
             </>
           )}
         </Button>
-
-        <div className="flex items-center gap-3 py-1">
-          <Separator className="flex-1 bg-border/70" />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            or
-          </span>
-          <Separator className="flex-1 bg-border/70" />
-        </div>
-
-        <GoogleButton onClick={handleGoogleSignIn} />
       </form>
 
       <div className="relative mt-6 border-t border-border/60 pt-5">

@@ -16,10 +16,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { PasswordField, TextField } from "./AuthFields";
-import { GoogleButton } from "./AuthSocial";
+import { signUp } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type SignUpRole = "customer" | "technician";
 
@@ -55,6 +56,7 @@ export function SignUpForm() {
   const [role, setRole] = useState<SignUpRole>("customer");
   const [errors, setErrors] = useState<SignUpErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   // Purely visual hints for the design — the real check happens on submit.
   const passwordRules = [
@@ -92,18 +94,75 @@ export function SignUpForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrors({});
+
+    const newErrors: SignUpErrors = {};
+
+    // Validate full name
+    if (!values.fullName.trim()) {
+      newErrors.fullName = "Please enter your full name.";
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!values.email.trim()) {
+      newErrors.email = "Please enter your email address.";
+    } else if (!emailRegex.test(values.email.trim())) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    // Validate password (6+ chars, uppercase, lowercase)
+    if (!values.password) {
+      newErrors.password = "Please enter a password.";
+    } else if (values.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters.";
+    } else if (!/[A-Z]/.test(values.password)) {
+      newErrors.password =
+        "Password must include at least one uppercase letter.";
+    } else if (!/[a-z]/.test(values.password)) {
+      newErrors.password =
+        "Password must include at least one lowercase letter.";
+    }
+
+    // Validate role
+    if (!role) {
+      newErrors.role = "Please select an account type.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsSubmitting(true);
 
-    try {
-      // Sign-up logic goes here.
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+    const formData = new FormData(event.currentTarget);
+    const formEntries = Object.fromEntries(formData) as Record<string, string>;
 
-  /** Stub — start the BetterAuth Google OAuth flow (defaults to the `customer` role). */
-  async function handleGoogleSignIn() {
-    // Google sign-up logic goes here.
+    // Normalized user data ready for auth provider (BetterAuth, etc.)
+    const userData = {
+      ...formEntries,
+      fullName: values.fullName.trim(),
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+      role: role,
+    };
+
+    console.log("Sign up userData:", userData);
+
+    const { data, error } = await signUp.email({
+      name: userData.fullName,
+      email: userData.email,
+      password: userData.password,
+      role: userData.role,
+    });
+
+    if (data) {
+      toast.success("User Created Successfully", { position: "top-center" });
+      router.push("/");
+    } else if (error) {
+      toast.error("User Sign Up Failed", { position: "top-center" });
+      console.log(error);
+    }
   }
 
   return (
@@ -213,7 +272,10 @@ export function SignUpForm() {
               const RoleIcon = option.icon;
 
               return (
-                <label key={option.value} className="group relative cursor-pointer">
+                <label
+                  key={option.value}
+                  className="group relative cursor-pointer"
+                >
                   <input
                     type="radio"
                     name="role"
@@ -231,11 +293,11 @@ export function SignUpForm() {
                   />
                   <span className="flex h-full flex-col gap-2.5 rounded-2xl border border-border/70 bg-background/60 p-4 transition-all duration-200 peer-checked:border-amber-500/70 peer-checked:bg-amber-50/80 peer-checked:shadow-[0_12px_30px_-22px_rgba(245,158,11,0.9)] peer-focus-visible:ring-3 peer-focus-visible:ring-amber-500/30 peer-focus-visible:outline-none hover:border-amber-500/40 dark:peer-checked:bg-amber-500/10">
                     <span className="flex items-center justify-between">
-                      <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors duration-200 group-has-[:checked]:bg-amber-500 group-has-[:checked]:text-white">
+                      <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors duration-200 group-has-checked:bg-amber-500 group-has-checked:text-white">
                         <RoleIcon className="size-4" aria-hidden="true" />
                       </span>
-                      <span className="flex size-4 items-center justify-center rounded-full border border-border/80 transition-colors duration-200 group-has-[:checked]:border-amber-500 group-has-[:checked]:bg-amber-500">
-                        <span className="size-1.5 rounded-full bg-white opacity-0 transition-opacity duration-200 group-has-[:checked]:opacity-100" />
+                      <span className="flex size-4 items-center justify-center rounded-full border border-border/80 transition-colors duration-200 group-has-checked:border-amber-500 group-has-checked:bg-amber-500">
+                        <span className="size-1.5 rounded-full bg-white opacity-0 transition-opacity duration-200 group-has-checked:opacity-100" />
                       </span>
                     </span>
                     <span className="text-sm font-semibold">
@@ -279,7 +341,10 @@ export function SignUpForm() {
         >
           {isSubmitting ? (
             <>
-              <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+              <LoaderCircle
+                className="size-4 animate-spin"
+                aria-hidden="true"
+              />
               Creating account…
             </>
           ) : (
@@ -292,16 +357,6 @@ export function SignUpForm() {
             </>
           )}
         </Button>
-
-        <div className="flex items-center gap-3 py-1">
-          <Separator className="flex-1 bg-border/70" />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            or
-          </span>
-          <Separator className="flex-1 bg-border/70" />
-        </div>
-
-        <GoogleButton onClick={handleGoogleSignIn} label="Sign up with Google" />
       </form>
 
       <div className="relative mt-6 border-t border-border/60 pt-5">
@@ -315,24 +370,6 @@ export function SignUpForm() {
           </Link>
         </p>
       </div>
-
-      <p className="relative mt-4 text-center text-[11px] leading-5 text-muted-foreground">
-        By creating an account you agree to our{" "}
-        <Link
-          href="/terms"
-          className="underline underline-offset-2 transition-colors hover:text-foreground"
-        >
-          Terms
-        </Link>{" "}
-        and{" "}
-        <Link
-          href="/privacy"
-          className="underline underline-offset-2 transition-colors hover:text-foreground"
-        >
-          Privacy Policy
-        </Link>
-        .
-      </p>
     </div>
   );
 }

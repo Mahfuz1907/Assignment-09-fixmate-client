@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/WebComponents/Navbar/Navbar";
 import Footer from "@/components/WebComponents/Footer/Footer";
+import { Toaster } from "sonner";
 
 const pjs = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Navbar />
         <main className="grow">{children}</main>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );
