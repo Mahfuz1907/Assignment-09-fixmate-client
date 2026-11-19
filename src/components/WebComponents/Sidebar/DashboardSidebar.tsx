@@ -2,17 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowLeft,
   CalendarCheck,
   ChevronLeft,
   ChevronRight,
   CircleUserRound,
   CreditCard,
   FolderKanban,
-  HelpCircle,
   Home,
   LayoutDashboard,
   LogOut,
@@ -20,11 +18,9 @@ import {
   PlusCircle,
   ReceiptText,
   ShieldCheck,
-  Sparkles,
   UserCheck,
   Users,
   Wrench,
-  X,
   Zap,
 } from "lucide-react";
 
@@ -40,7 +36,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -49,6 +44,8 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { GettingSessionFromClient } from "@/library/GettingSessions/GetSessionClient";
+import { signOut } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export type DashboardRole = "customer" | "technician" | "admin";
 
@@ -65,10 +62,14 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export const ROLE_NAV_CONFIG: Record<DashboardRole, { label: string; badgeClass: string; icon: LucideIcon; groups: NavGroup[] }> = {
+export const ROLE_NAV_CONFIG: Record<
+  DashboardRole,
+  { label: string; badgeClass: string; icon: LucideIcon; groups: NavGroup[] }
+> = {
   customer: {
     label: "Customer Portal",
-    badgeClass: "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+    badgeClass:
+      "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
     icon: CircleUserRound,
     groups: [
       {
@@ -103,7 +104,8 @@ export const ROLE_NAV_CONFIG: Record<DashboardRole, { label: string; badgeClass:
   },
   technician: {
     label: "Technician Portal",
-    badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    badgeClass:
+      "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
     icon: Wrench,
     groups: [
       {
@@ -149,7 +151,8 @@ export const ROLE_NAV_CONFIG: Record<DashboardRole, { label: string; badgeClass:
   },
   admin: {
     label: "Admin Control",
-    badgeClass: "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    badgeClass:
+      "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
     icon: ShieldCheck,
     groups: [
       {
@@ -221,7 +224,7 @@ function BrandLogo({ collapsed = false }: { collapsed?: boolean }) {
       className="group flex items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
       aria-label="FixMate Home"
     >
-      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-white shadow-[0_4px_14px_-3px_rgba(245,158,11,0.7)] transition-transform duration-300 group-hover:-rotate-6">
+      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-amber-400 via-amber-500 to-orange-500 text-white shadow-[0_4px_14px_-3px_rgba(245,158,11,0.7)] transition-transform duration-300 group-hover:-rotate-6">
         <Wrench className="size-5" strokeWidth={2.4} />
         <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-background bg-emerald-500" />
       </div>
@@ -257,11 +260,11 @@ function SidebarNav({
   collapsed,
   onNavigate,
   user,
-  onSignOut,
 }: SidebarContentProps) {
   const pathname = usePathname();
   const config = ROLE_NAV_CONFIG[role];
   const RoleIcon = config.icon;
+  const router = useRouter();
 
   const isActive = (href: string) => {
     if (href === `/dashboard/${role}`) {
@@ -277,7 +280,7 @@ function SidebarNav({
         <div
           className={cn(
             "flex items-center gap-3 border-b border-border/60 pb-4",
-            collapsed ? "justify-center" : "justify-between"
+            collapsed ? "justify-center" : "justify-between",
           )}
         >
           <BrandLogo collapsed={collapsed} />
@@ -301,13 +304,19 @@ function SidebarNav({
             </div>
             <Badge
               variant="outline"
-              className={cn("text-[9px] px-1.5 py-0 uppercase", config.badgeClass)}
+              className={cn(
+                "text-[9px] px-1.5 py-0 uppercase",
+                config.badgeClass,
+              )}
             >
               Active
             </Badge>
           </div>
         ) : (
-          <div className="mt-3 flex justify-center" title={`${config.label} (${role})`}>
+          <div
+            className="mt-3 flex justify-center"
+            title={`${config.label} (${role})`}
+          >
             <span className="flex size-8 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
               <RoleIcon className="size-4" />
             </span>
@@ -340,13 +349,15 @@ function SidebarNav({
                         active
                           ? "bg-amber-500 text-white shadow-md shadow-amber-500/20 font-bold"
                           : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
-                        collapsed && "justify-center px-0 py-2.5"
+                        collapsed && "justify-center px-0 py-2.5",
                       )}
                     >
                       <Icon
                         className={cn(
                           "size-4.5 shrink-0 transition-transform duration-200 group-hover:scale-110",
-                          active ? "text-white" : "text-muted-foreground group-hover:text-amber-500"
+                          active
+                            ? "text-white"
+                            : "text-muted-foreground group-hover:text-amber-500",
                         )}
                       />
 
@@ -359,7 +370,7 @@ function SidebarNav({
                                 "rounded-full px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider",
                                 active
                                   ? "bg-white text-amber-600"
-                                  : "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                                  : "bg-amber-500/20 text-amber-600 dark:text-amber-400",
                               )}
                             >
                               {item.badge}
@@ -388,7 +399,7 @@ function SidebarNav({
           href="/"
           className={cn(
             "flex items-center gap-2.5 rounded-xl border border-border/60 px-2.5 py-2 text-xs font-medium text-muted-foreground transition-all hover:border-amber-500/40 hover:bg-muted/60 hover:text-foreground",
-            collapsed && "justify-center px-0"
+            collapsed && "justify-center px-0",
           )}
           title="Return to Public Site"
         >
@@ -404,14 +415,16 @@ function SidebarNav({
                 type="button"
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-muted/60 text-left outline-none focus-visible:ring-2 focus-visible:ring-amber-500",
-                  collapsed && "justify-center p-1"
+                  collapsed && "justify-center p-1",
                 )}
               />
             }
           >
             <Avatar className="size-8.5 shrink-0 ring-1.5 ring-amber-500/30">
-              {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
-              <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-500 text-[10px] font-bold text-white">
+              {user.image ? (
+                <AvatarImage src={user.image} alt={user.name} />
+              ) : null}
+              <AvatarFallback className="bg-linear-to-br from-amber-500 to-orange-500 text-[10px] font-bold text-white">
                 {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
@@ -436,20 +449,39 @@ function SidebarNav({
           >
             <div className="px-2 py-1.5 leading-tight">
               <p className="text-xs font-bold">{user.name}</p>
-              <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {user.email}
+              </p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href="/profile" />} className="cursor-pointer text-xs">
+            <DropdownMenuItem
+              render={<Link href="/profile" />}
+              className="cursor-pointer text-xs"
+            >
               <CircleUserRound className="mr-2 size-3.5" />
               Edit Profile
             </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/" />} className="cursor-pointer text-xs">
+            <DropdownMenuItem
+              render={<Link href="/" />}
+              className="cursor-pointer text-xs"
+            >
               <Home className="mr-2 size-3.5" />
               FixMate Home
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={onSignOut}
+              onClick={() =>
+                signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      toast.success("Signed out successfully", {
+                        position: "top-center",
+                      });
+                      router.push("/sign-in");
+                    },
+                  },
+                })
+              }
               className="cursor-pointer text-xs text-destructive focus:bg-destructive/10 focus:text-destructive"
             >
               <LogOut className="mr-2 size-3.5" />
@@ -479,9 +511,9 @@ export function DashboardSidebarLayout({
   // Derive role dynamically from session if available, else prop
   const detectedRole: DashboardRole =
     sessionUser && "role" in sessionUser && typeof sessionUser.role === "string"
-      ? (["customer", "technician", "admin"].includes(sessionUser.role)
-          ? (sessionUser.role as DashboardRole)
-          : currentRole)
+      ? ["customer", "technician", "admin"].includes(sessionUser.role)
+        ? (sessionUser.role as DashboardRole)
+        : currentRole
       : currentRole;
 
   const userData = {
@@ -490,26 +522,16 @@ export function DashboardSidebarLayout({
     image: sessionUser?.image || null,
   };
 
-  const handleSignOut = () => {
-    // Redirect or trigger auth client signOut
-    window.location.href = "/sign-in";
-  };
-
   return (
     <div className="relative flex min-h-screen bg-background">
       {/* Desktop Sticky Collapsible Sidebar */}
       <aside
         className={cn(
           "sticky top-0 z-30 hidden h-screen shrink-0 border-r border-border/70 bg-card/90 backdrop-blur-xl transition-[width] duration-300 md:flex flex-col",
-          collapsed ? "w-18" : "w-64"
+          collapsed ? "w-18" : "w-64",
         )}
       >
-        <SidebarNav
-          role={detectedRole}
-          collapsed={collapsed}
-          user={userData}
-          onSignOut={handleSignOut}
-        />
+        <SidebarNav role={detectedRole} collapsed={collapsed} user={userData} />
 
         {/* Collapse / Expand Toggle Button */}
         <button
@@ -560,7 +582,6 @@ export function DashboardSidebarLayout({
                   collapsed={false}
                   user={userData}
                   onNavigate={() => setMobileOpen(false)}
-                  onSignOut={handleSignOut}
                 />
               </SheetContent>
             </Sheet>
@@ -571,7 +592,7 @@ export function DashboardSidebarLayout({
                 variant="outline"
                 className={cn(
                   "hidden sm:inline-flex uppercase text-[10px] tracking-wider font-semibold",
-                  ROLE_NAV_CONFIG[detectedRole].badgeClass
+                  ROLE_NAV_CONFIG[detectedRole].badgeClass,
                 )}
               >
                 {ROLE_NAV_CONFIG[detectedRole].label}
@@ -600,7 +621,7 @@ export function DashboardSidebarLayout({
                 {userData.image ? (
                   <AvatarImage src={userData.image} alt={userData.name} />
                 ) : null}
-                <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-500 text-[10px] font-bold text-white">
+                <AvatarFallback className="bg-linear-to-br from-amber-500 to-orange-500 text-[10px] font-bold text-white">
                   {getInitials(userData.name)}
                 </AvatarFallback>
               </Avatar>

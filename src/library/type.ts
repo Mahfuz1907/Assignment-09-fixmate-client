@@ -27,3 +27,35 @@ export interface IService {
   isAvailable: boolean;
   createdAt: string | Date;
 }
+
+export interface ICreateServiceInput {
+  title: string;
+  category: ServiceCategory;
+  description: string;
+  basePrice: number;
+  estimatedDuration: string;
+  serviceMode: ServiceMode;
+  serviceArea: string;
+  serviceImage: File | null;
+  technicianName: string;
+  technicianEmail: string;
+  approvalStatus: ServiceApprovalStatus;
+  isAvailable: boolean;
+}
+
+export interface ICreateServiceFormData {
+  title: string;
+  category: ServiceCategory;
+  description: string;
+  image: string;
+  basePrice: number;
+  estimatedDuration: string;
+  serviceMode: ServiceMode;
+  serviceArea: string;
+  technicianName: string;
+  technicianEmail: string;
+  approvalStatus: "pending";
+  isAvailable: true;
+  createdAt: Date | string;
+}
+

@@ -52,13 +52,6 @@ export type NavbarUser = {
   role?: string;
 };
 
-type NavbarProps = {
-  /** The signed-in user. Pass `null` (or omit it) for the logged-out state. */
-  user?: NavbarUser | null;
-  /** Wire this to your auth provider. Falls back to redirecting to /sign-in. */
-  onSignOut?: () => void | Promise<void>;
-};
-
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
@@ -326,7 +319,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-5 lg:px-8">
       <nav
         aria-label="Primary"
-        className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 rounded-2xl border border-border/70 bg-background/80 px-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.28)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 sm:px-4"
+        className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 rounded-2xl border border-border/70 bg-background/80 px-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.28)] backdrop-blur-xl supports-backdrop-filter:bg-background/70 sm:px-4"
       >
         <Brand />
 
