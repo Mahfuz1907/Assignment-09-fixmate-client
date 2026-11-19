@@ -15,6 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { PasswordField, TextField } from "./AuthFields";
+import { signIn } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type SignInValues = {
   email: string;
@@ -31,6 +34,7 @@ export function SignInForm() {
   const [errors, setErrors] = useState<SignInErrors>({});
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   function handleChange(field: keyof SignInValues) {
     return (event: ChangeEvent<HTMLInputElement>) => {
@@ -93,13 +97,18 @@ export function SignInForm() {
 
     console.log("Sign in userData:", userData);
 
-    try {
-      // Authentication logic / BetterAuth call goes here:
-      // await authClient.signIn.email({ email: userData.email, password: userData.password, rememberMe: userData.rememberMe });
-    } catch (err) {
-      console.error("Sign in error:", err);
-    } finally {
-      setIsSubmitting(false);
+    const { data, error } = await signIn.email({
+      email: userData.email,
+      password: userData.password,
+      rememberMe: true,
+    });
+
+    if (data) {
+      toast.success("User Signed In Successfully", { position: "top-center" });
+      router.push("/");
+    } else if (error) {
+      toast.error("User Sign In Failed", { position: "top-center" });
+      console.log(error);
     }
   }
 
