@@ -21,15 +21,15 @@ export const auth = betterAuth({
       },
       phone: {
         type: "string",
-        input: false,
+        input: true,
       },
       area: {
         type: "string",
-        input: false,
+        input: true,
       },
       bio: {
         type: "string",
-        input: false,
+        input: true,
       },
     },
   },

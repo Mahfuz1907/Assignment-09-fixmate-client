@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import Link from "next/link";
 import {
   Camera,
   Globe,
-  LoaderCircle,
   Mail,
   MapPin,
   Phone,
@@ -28,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { GettingSessionFromClient } from "@/library/GettingSessions/GetSessionClient";
 import { toast } from "sonner";
+import { updateUser } from "@/lib/auth-client";
 
 interface ProfileFormValues {
   name: string;
@@ -44,42 +44,40 @@ export default function ProfilePage() {
   const sessionUser = session?.user;
 
   const [values, setValues] = useState<ProfileFormValues>({
-    name: "Alex Morgan",
-    email: "alex.morgan@fixmate.com",
-    role: "customer",
-    phone: "+880 1712-345678",
-    area: "Dhanmondi, Dhaka",
-    bio: "Passionate homeowner who loves keeping devices and home electronics running at peak performance.",
-    image: "",
+    name: (sessionUser?.name as string) || "",
+    email: (sessionUser?.email as string) || "",
+    role: (sessionUser?.role as string) || "",
+    phone: (sessionUser?.phone as string) || "",
+    area: (sessionUser?.area as string) || "",
+    bio: (sessionUser?.bio as string) || "",
+    image: (sessionUser?.image as string) || "",
   });
 
   const [imagePreview, setImagePreview] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [syncedUserId, setSyncedUserId] = useState<string | null>(null);
 
-  // Sync state if session user arrives from client hook
-  useEffect(() => {
-    if (sessionUser) {
-      setValues((prev) => ({
-        ...prev,
-        name: sessionUser.name || prev.name,
-        email: sessionUser.email || prev.email,
-        role: (sessionUser as { role?: string })?.role || prev.role,
-        image: sessionUser.image || prev.image,
-        phone: (sessionUser as { phone?: string })?.phone || prev.phone,
-        area: (sessionUser as { area?: string })?.area || prev.area,
-        bio: (sessionUser as { bio?: string })?.bio || prev.bio,
-      }));
-      if (sessionUser.image) {
-        setImagePreview(sessionUser.image);
-      }
+  if (sessionUser && sessionUser?.id !== syncedUserId) {
+    setSyncedUserId(sessionUser?.id);
+    setValues((prev) => ({
+      ...prev,
+      name: sessionUser.name || prev.name,
+      email: sessionUser.email || prev.email,
+      role: (sessionUser as { role?: string })?.role || prev.role,
+      image: sessionUser.image || prev.image,
+      phone: (sessionUser as { phone?: string })?.phone || prev.phone,
+      area: (sessionUser as { area?: string })?.area || prev.area,
+      bio: (sessionUser as { bio?: string })?.bio || prev.bio,
+    }));
+
+    if (sessionUser.image) {
+      setImagePreview(sessionUser.image);
     }
-  }, [sessionUser]);
+  }
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -99,7 +97,9 @@ export default function ProfilePage() {
       setSelectedFile(file);
       const objectUrl = URL.createObjectURL(file);
       setImagePreview(objectUrl);
-      toast.success("Profile photo selected! Save changes to apply.");
+      toast.success("Profile photo selected! Save changes to apply.", {
+        position: "top-center",
+      });
     }
   };
 
@@ -117,45 +117,67 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    try {
-      let finalImageUrl = values.image;
+    let finalImageUrl = values.image;
 
-      // ImgBB upload stub:
-      if (selectedFile) {
-        setIsUploadingImage(true);
-        // User can later connect actual ImgBB API:
-        // const formData = new FormData();
-        // formData.append("image", selectedFile);
-        // const res = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`, { method: "POST", body: formData });
-        // const data = await res.json();
-        // finalImageUrl = data.data.url;
-        finalImageUrl = imagePreview;
-        setIsUploadingImage(false);
+    // ImgBB upload stub:
+    if (selectedFile) {
+      const apiKey = process.env.NEXT_PUBLIC_IMGBB_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "NEXT_PUBLIC_IMGBB_KEY is missing in environment variables.",
+        );
       }
 
-      const updatedUserData = {
-        name: values.name.trim(),
-        email: values.email, // read-only
-        role: values.role, // read-only
-        phone: values.phone.trim(),
-        area: values.area.trim(),
-        bio: values.bio.trim(),
-        image: finalImageUrl,
-      };
+      const formData = new FormData();
+      formData.append("image", selectedFile);
 
-      console.log("Updated Profile Data ready for BetterAuth:", updatedUserData);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: "POST",
+        body: formData,
+      });
 
-      // Simulating network delay for smooth UI feedback
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const data = await res.json();
 
-      toast.success("Profile details updated successfully!");
-    } catch (err) {
-      console.error("Failed to update profile:", err);
-      toast.error("Failed to update profile. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      if (!res.ok || !data?.success || !data?.data?.url) {
+        throw new Error(
+          data?.error?.message || "Failed to upload image to ImgBB.",
+        );
+      }
+
+      finalImageUrl = data.data.url;
+    }
+
+    const updatedUserData = {
+      name: values.name.trim(),
+      phone: values.phone.trim(),
+      area: values.area.trim(),
+      bio: values.bio.trim(),
+      image: finalImageUrl,
+    };
+
+    console.log("Updated Profile Data ready for BetterAuth:", updatedUserData);
+
+    // Simulating network delay for smooth UI feedback
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const { data } = await updateUser({
+      image: updatedUserData.image,
+      name: updatedUserData.name,
+      phone: updatedUserData.phone,
+      area: updatedUserData.area,
+      bio: updatedUserData.bio,
+    });
+
+    if (data) {
+      toast.success("Profile details updated successfully!", {
+        position: "top-center",
+      });
+    } else {
+      console.error("Failed to update profile:");
+      toast.error("Failed to update profile. Please try again.", {
+        position: "top-center",
+      });
     }
   };
 
@@ -217,7 +239,7 @@ export default function ProfilePage() {
                   className="object-cover"
                 />
               ) : null}
-              <AvatarFallback className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-lg font-bold text-white">
+              <AvatarFallback className="rounded-2xl bg-linear-to-br from-amber-500 to-orange-500 text-lg font-bold text-white">
                 {getInitials(values.name)}
               </AvatarFallback>
             </Avatar>
@@ -249,7 +271,11 @@ export default function ProfilePage() {
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Your photo is visible to {isTechnician ? "customers requesting service" : "technicians you book with"}.
+              Your photo is visible to{" "}
+              {isTechnician
+                ? "customers requesting service"
+                : "technicians you book with"}
+              .
             </p>
             <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <Button
@@ -369,7 +395,8 @@ export default function ProfilePage() {
                 Account Role
               </Label>
               <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                <Shield className="size-2.5 text-amber-500" /> Assigned by system
+                <Shield className="size-2.5 text-amber-500" /> Assigned by
+                system
               </span>
             </div>
             <div className="relative">
@@ -415,7 +442,9 @@ export default function ProfilePage() {
         <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-muted-foreground">
           <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <p>
-            Changes saved here will reflect across your navbar, bookings, and dashboard cards. Email and account roles can only be updated by platform administrators.
+            Changes saved here will reflect across your navbar, bookings, and
+            dashboard cards. Email and account roles can only be updated by
+            platform administrators.
           </p>
         </div>
 
@@ -426,8 +455,8 @@ export default function ProfilePage() {
               isTechnician
                 ? "/dashboard/technician"
                 : isAdmin
-                ? "/dashboard/admin"
-                : "/dashboard/customer"
+                  ? "/dashboard/admin"
+                  : "/dashboard/customer"
             }
             className="w-full sm:w-auto"
           >
@@ -443,20 +472,10 @@ export default function ProfilePage() {
 
           <Button
             type="submit"
-            disabled={isSubmitting || isUploadingImage}
-            className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 font-semibold text-white shadow-md transition-all hover:from-amber-600 hover:to-orange-600 disabled:opacity-70 text-xs sm:text-sm cursor-pointer"
+            className="w-full sm:w-auto rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-6 font-semibold text-white shadow-md transition-all hover:from-amber-600 hover:to-orange-600 disabled:opacity-70 text-xs sm:text-sm cursor-pointer"
           >
-            {isSubmitting || isUploadingImage ? (
-              <>
-                <LoaderCircle className="mr-2 size-4 animate-spin" />
-                Saving Changes…
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                Save Profile Changes
-              </>
-            )}
+            <Save className="mr-2 size-4" />
+            Save Profile Changes
           </Button>
         </div>
       </form>
