@@ -39,6 +39,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { GettingSessionFromClient } from "@/library/GettingSessions/GetSessionClient";
+import { signOut } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export type NavbarRole = "customer" | "technician" | "admin";
 
@@ -46,7 +49,7 @@ export type NavbarUser = {
   name: string;
   email: string;
   image?: string | null;
-  role: NavbarRole;
+  role?: string;
 };
 
 type NavbarProps = {
@@ -139,8 +142,19 @@ function Brand() {
   );
 }
 
-function UserBadge({ role }: { role: NavbarRole }) {
-  const meta = ROLE_META[role];
+function isNavbarRole(role: string | undefined): role is NavbarRole {
+  return role === "customer" || role === "technician" || role === "admin";
+}
+
+function getRoleMeta(role?: string) {
+  if (role && isNavbarRole(role)) {
+    return ROLE_META[role];
+  }
+  return ROLE_META.customer;
+}
+
+function UserBadge({ role }: { role?: string }) {
+  const meta = getRoleMeta(role);
   const RoleIcon = meta.icon;
 
   return (
@@ -157,14 +171,9 @@ function UserBadge({ role }: { role: NavbarRole }) {
   );
 }
 
-function AccountMenu({
-  user,
-  onSignOut,
-}: {
-  user: NavbarUser;
-  onSignOut?: () => void | Promise<void>;
-}) {
-  const meta = ROLE_META[user.role];
+function AccountMenu({ user }: { user: NavbarUser }) {
+  const meta = getRoleMeta(user.role);
+  const router = useRouter();
 
   return (
     <DropdownMenu>
@@ -259,7 +268,18 @@ function AccountMenu({
         <DropdownMenuItem
           variant="destructive"
           className="gap-2 rounded-lg px-2 py-2"
-          onClick={() => void onSignOut?.()}
+          onClick={() =>
+            signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  toast.success("Signed out successfully", {
+                    position: "top-center",
+                  });
+                  router.push("/sign-in");
+                },
+              },
+            })
+          }
         >
           <LogOut className="size-4" aria-hidden="true" />
           Sign Out
@@ -269,16 +289,24 @@ function AccountMenu({
   );
 }
 
-function MobileSignOut({
-  onSignOut,
-}: {
-  onSignOut?: () => void | Promise<void>;
-}) {
+function MobileSignOut() {
+  const router = useRouter();
   return (
     <Button
       variant="ghost"
       className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
-      onClick={() => void onSignOut?.()}
+      onClick={() =>
+        signOut({
+          fetchOptions: {
+            onSuccess: () => {
+              toast.success("Signed out successfully", {
+                position: "top-center",
+              });
+              router.push("/sign-in");
+            },
+          },
+        })
+      }
     >
       <LogOut className="size-4" aria-hidden="true" />
       Sign Out
@@ -286,24 +314,13 @@ function MobileSignOut({
   );
 }
 
-const Navbar = ({ user = null, onSignOut }: NavbarProps) => {
+const Navbar = () => {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const session = GettingSessionFromClient();
+  const user = session?.user;
 
-  const handleSignOut = () => {
-    setOpen(false);
-
-    if (onSignOut) {
-      void onSignOut();
-      return;
-    }
-
-    // Auth is not wired up yet — send the user to the sign-in page.
-    router.push("/sign-in");
-  };
-
-  const roleMeta = user ? ROLE_META[user.role] : null;
+  const roleMeta = user ? getRoleMeta(user.role) : null;
 
   return (
     <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-5 lg:px-8">
@@ -348,7 +365,7 @@ const Navbar = ({ user = null, onSignOut }: NavbarProps) => {
         {/* Desktop actions */}
         <div className="ml-auto hidden items-center gap-1.5 lg:flex">
           {user ? (
-            <AccountMenu user={user} onSignOut={handleSignOut} />
+            <AccountMenu user={user} />
           ) : (
             <>
               <Link
@@ -401,7 +418,10 @@ const Navbar = ({ user = null, onSignOut }: NavbarProps) => {
               <SheetTitle className="flex items-center gap-2 text-base font-bold tracking-tight">
                 <BrandMark className="size-8 rounded-lg" />
                 <span>
-                  Fix<span className="text-amber-600 dark:text-amber-400">Mate</span>
+                  Fix
+                  <span className="text-amber-600 dark:text-amber-400">
+                    Mate
+                  </span>
                 </span>
               </SheetTitle>
               <SheetDescription className="sr-only">
@@ -534,7 +554,7 @@ const Navbar = ({ user = null, onSignOut }: NavbarProps) => {
                       />
                       Update Profile
                     </Link>
-                    <MobileSignOut onSignOut={handleSignOut} />
+                    <MobileSignOut />
                   </div>
                 </>
               ) : (
