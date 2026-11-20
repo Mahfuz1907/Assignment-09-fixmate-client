@@ -2,6 +2,11 @@ import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AddServiceForm from "./AddServiceForm";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Add Service · FixMate",
+};
 
 export default async function AddServicePage() {
   return (
