@@ -74,3 +74,17 @@ export interface ICreateServiceEditData {
   isAvailable: boolean;
   createdAt: Date | string;
 }
+
+export interface IUsers {
+  _id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  role: string;
+  area: string;
+  bio: string;
+  image: string;
+  phone: string;
+}

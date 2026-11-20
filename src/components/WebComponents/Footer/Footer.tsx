@@ -147,12 +147,8 @@ function ColumnHeading({ children }: { children: string }) {
   );
 }
 
-function getCopyrightYear() {
-  return new Date().getFullYear();
-}
-
 const Footer = () => {
-  const year = getCopyrightYear();
+  const year = 2026;
 
   return (
     <footer className="relative mt-24 overflow-hidden rounded-t-[2rem] border-t border-white/10 bg-zinc-950 text-zinc-300 sm:rounded-t-[2.5rem]">
