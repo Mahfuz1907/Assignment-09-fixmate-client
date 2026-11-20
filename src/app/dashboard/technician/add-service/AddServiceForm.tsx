@@ -36,6 +36,7 @@ import { ServiceCategory, ServiceMode } from "@/library/type";
 import { GettingSessionFromClient } from "@/library/GettingSessions/GetSessionClient";
 import Link from "next/link";
 import { AddService } from "@/library/Action/Services";
+import { useRouter } from "next/navigation";
 
 const CATEGORIES: ServiceCategory[] = [
   "Smartphone",
@@ -103,6 +104,7 @@ const AddServiceForm = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const router = useRouter();
 
   // Sync session details when loaded
   const currentSessionKey = sessionUser
@@ -140,7 +142,7 @@ const AddServiceForm = () => {
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
       setErrors((prev) => ({ ...prev, image: undefined }));
-      toast.success("Service banner selected!");
+      toast.success("Service banner selected!", { position: "top-center" });
     }
   };
 
@@ -266,6 +268,7 @@ const AddServiceForm = () => {
           "Your listing will appear publicly once approved by an administrator.",
         position: "top-center",
       });
+      router.push("/dashboard/technician/my-services");
     }
   };
   return (
