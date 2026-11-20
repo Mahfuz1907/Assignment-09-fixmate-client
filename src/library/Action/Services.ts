@@ -1,4 +1,4 @@
-import { ICreateServiceFormData } from "../type";
+import { ICreateServiceEditData, ICreateServiceFormData } from "../type";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -33,6 +33,19 @@ export const UpdateAvailable = async (
       "content-type": "application/json",
     },
     body: JSON.stringify({ isAvailable: data.isAvailable }),
+  });
+  const result = await res.json();
+  return result;
+};
+
+// Edit Service
+export const EditService = async (id: string, data: ICreateServiceEditData) => {
+  const res = await fetch(`${BASE_URL}/service/edit/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+    headers: {
+      "content-type": "application/json",
+    },
   });
   const result = await res.json();
   return result;

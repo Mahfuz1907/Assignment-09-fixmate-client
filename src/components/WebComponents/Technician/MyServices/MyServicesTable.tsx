@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -8,16 +9,46 @@ import {
   Clock,
   EyeOff,
   FolderKanban,
+  Loader2,
   MapPin,
   Pencil,
   PlusCircle,
   Trash2,
   TriangleAlert,
+  Upload,
   Wrench,
+  X,
 } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -27,16 +58,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { IService, ServiceApprovalStatus } from "@/library/type";
-import { UpdateAvailable } from "@/library/Action/Services";
+import type {
+  ICreateServiceFormData,
+  IService,
+  ServiceApprovalStatus,
+  ServiceCategory,
+  ServiceMode,
+} from "@/library/type";
+import { EditService, UpdateAvailable } from "@/library/Action/Services";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const PRICE_FORMATTER = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   maximumFractionDigits: 0,
 });
+
+const CATEGORIES: ServiceCategory[] = [
+  "Smartphone",
+  "Laptop & PC",
+  "AC",
+  "Refrigerator",
+  "TV",
+  "Washing Machine",
+  "Electrical",
+];
+
+const SERVICE_MODES: ServiceMode[] = ["Home Visit", "Shop Drop-off"];
 
 const STATUS_META: Record<
   ServiceApprovalStatus,
@@ -81,6 +132,7 @@ function StatusBadge({ status }: { status: ServiceApprovalStatus }) {
 
 function AvailabilityIndicator({ service }: { service: IService }) {
   const [isAvailable, setIsAvailable] = useState(service.isAvailable);
+  const router = useRouter();
 
   const handleAvailabilityChange = async (checked: boolean) => {
     setIsAvailable(checked);
@@ -94,6 +146,7 @@ function AvailabilityIndicator({ service }: { service: IService }) {
         `${service.title} is ${checked ? "available" : "not available"} now`,
         { position: "top-center" },
       );
+      router.refresh();
     }
   };
 
@@ -154,18 +207,470 @@ function ServiceThumb({
   );
 }
 
-/** Stub handlers — hook these up to the edit/delete actions later. */
-function handleEdit(service: IService) {
-  void service;
-  // TODO: open the pre-filled edit form (and reset approvalStatus to "pending").
+interface EditServiceDialogProps {
+  service: IService | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-function handleDelete(service: IService) {
-  void service;
-  // TODO: open the delete confirmation modal, then remove the service.
+function EditServiceDialog({
+  service,
+  open,
+  onOpenChange,
+}: EditServiceDialogProps) {
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "Smartphone" as ServiceCategory,
+    description: "",
+    image: "",
+    basePrice: 0,
+    estimatedDuration: "",
+    serviceMode: "Home Visit" as ServiceMode,
+    serviceArea: "",
+    isAvailable: true,
+  });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [syncedServiceKey, setSyncedServiceKey] = useState<string | null>(null);
+  const router = useRouter();
+
+  const currentServiceKey = service
+    ? `${service._id ?? ""}|${service.title ?? ""}|${service.image ?? ""}|${service.basePrice ?? ""}|${service.isAvailable ?? ""}`
+    : null;
+
+  if (service && currentServiceKey !== syncedServiceKey) {
+    setSyncedServiceKey(currentServiceKey);
+    setFormData({
+      title: service.title || "",
+      category: (service.category || "Smartphone") as ServiceCategory,
+      description: service.description || "",
+      image: service.image || "",
+      basePrice: service.basePrice ?? 0,
+      estimatedDuration: service.estimatedDuration || "",
+      serviceMode: (service.serviceMode || "Home Visit") as ServiceMode,
+      serviceArea: service.serviceArea || "",
+      isAvailable: service.isAvailable ?? true,
+    });
+    setImageFile(null);
+    setImagePreview(service.image || "");
+  }
+
+  if (!service) return null;
+
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select a valid image file (PNG, JPG, WEBP).");
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        toast.error("Image file must be under 8MB.");
+        return;
+      }
+
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      toast.success("New banner image selected!");
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setFormData((prev) => ({ ...prev, image: "" }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let finalImageUrl = imagePreview || formData.image || service.image || "";
+
+    if (imageFile) {
+      try {
+        setIsUploading(true);
+        const apiKey = process.env.NEXT_PUBLIC_IMGBB_KEY;
+        if (!apiKey) {
+          toast.error("ImgBB API key is missing in environment variables.");
+          setIsUploading(false);
+          return;
+        }
+
+        const imgFormData = new FormData();
+        imgFormData.append("image", imageFile);
+
+        const res = await fetch(
+          `https://api.imgbb.com/1/upload?key=${apiKey}`,
+          {
+            method: "POST",
+            body: imgFormData,
+          },
+        );
+
+        const data = await res.json();
+
+        if (!res.ok || !data?.success || !data?.data?.url) {
+          throw new Error(
+            data?.error?.message || "Failed to upload image to ImgBB.",
+          );
+        }
+
+        finalImageUrl = data.data.url;
+      } catch (err: unknown) {
+        const errorMsg =
+          err instanceof Error ? err.message : "Image upload to ImgBB failed.";
+        toast.error(errorMsg);
+        setIsUploading(false);
+        return;
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    const { _id, ...restService } = service;
+
+    const updatedData = {
+      ...restService,
+      ...formData,
+      image: finalImageUrl,
+      technicianName: service.technicianName,
+      technicianEmail: service.technicianEmail,
+    };
+
+    console.log("Updated Service Data:", updatedData);
+    onOpenChange(false);
+    const result = await EditService(service._id as string, updatedData);
+    console.log(result);
+    if (result.acknowledged) {
+      toast.success("Service updated successfully", { position: "top-center" });
+      router.refresh();
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Service</DialogTitle>
+          <DialogDescription>
+            Update service details. Technician name and email are read-only.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          {/* Read-only technician info */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="technicianName"
+                className="text-xs text-muted-foreground"
+              >
+                Technician Name (Read-only)
+              </Label>
+              <Input
+                id="technicianName"
+                value={service.technicianName || ""}
+                disabled
+                readOnly
+                className="bg-muted text-muted-foreground"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="technicianEmail"
+                className="text-xs text-muted-foreground"
+              >
+                Technician Email (Read-only)
+              </Label>
+              <Input
+                id="technicianEmail"
+                type="email"
+                value={service.technicianEmail || ""}
+                disabled
+                readOnly
+                className="bg-muted text-muted-foreground"
+              />
+            </div>
+          </div>
+
+          {/* Editable Title */}
+          <div className="space-y-1.5">
+            <Label htmlFor="title">Service Title</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
+              placeholder="e.g. iPhone Screen Replacement"
+              required
+            />
+          </div>
+
+          {/* Category & Service Mode */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(val) => {
+                  if (val) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      category: val as ServiceCategory,
+                    }));
+                  }
+                }}
+              >
+                <SelectTrigger id="category" className="w-full">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="serviceMode">Service Mode</Label>
+              <Select
+                value={formData.serviceMode}
+                onValueChange={(val) => {
+                  if (val) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      serviceMode: val as ServiceMode,
+                    }));
+                  }
+                }}
+              >
+                <SelectTrigger id="serviceMode" className="w-full">
+                  <SelectValue placeholder="Select Service Mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_MODES.map((mode) => (
+                    <SelectItem key={mode} value={mode}>
+                      {mode}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Base Price & Estimated Duration */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="basePrice">Starting Price ($)</Label>
+              <Input
+                id="basePrice"
+                type="number"
+                min="0"
+                step="any"
+                value={formData.basePrice}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    basePrice: Number(e.target.value),
+                  }))
+                }
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="estimatedDuration">Estimated Duration</Label>
+              <Input
+                id="estimatedDuration"
+                value={formData.estimatedDuration}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    estimatedDuration: e.target.value,
+                  }))
+                }
+                placeholder="e.g. 1-2 hours"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Service Area */}
+          <div className="space-y-1.5">
+            <Label htmlFor="serviceArea">Service Area</Label>
+            <Input
+              id="serviceArea"
+              value={formData.serviceArea}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  serviceArea: e.target.value,
+                }))
+              }
+              placeholder="e.g. Downtown, Uptown, Brooklyn"
+              required
+            />
+          </div>
+
+          {/* Service Image Upload & Prefilled Preview */}
+          <div className="space-y-2">
+            <Label>Service Banner Image</Label>
+
+            {imagePreview ? (
+              <div className="relative overflow-hidden rounded-xl border border-border/80 bg-muted">
+                <div className="relative h-44 w-full sm:h-52">
+                  <Image
+                    src={imagePreview}
+                    alt="Service banner preview"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex items-center justify-between border-t border-border/60 bg-card/90 px-3 py-2 backdrop-blur-xs">
+                  <span className="truncate text-xs font-medium text-muted-foreground">
+                    {imageFile ? imageFile.name : "Current service banner"}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-7 text-xs"
+                    >
+                      Change image
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={removeImage}
+                      className="h-7 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <X className="mr-1 size-3" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/80 p-6 text-center transition-colors hover:border-amber-500/50 hover:bg-amber-500/5"
+              >
+                <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Upload className="size-5" />
+                </div>
+                <p className="mt-2 text-xs font-semibold">
+                  Click to select service banner image
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  PNG, JPG or WEBP (Max 8MB). Uploads to ImgBB on save.
+                </p>
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              rows={3}
+              value={formData.description}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              placeholder="Describe your service, warranty, and what's included..."
+              required
+            />
+          </div>
+
+          {/* Availability switch */}
+          <div className="flex items-center justify-between rounded-lg border border-border/70 p-3">
+            <div className="space-y-0.5">
+              <Label
+                htmlFor="service-available"
+                className="text-sm font-medium"
+              >
+                Availability
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Set whether this service is currently available to customers.
+              </p>
+            </div>
+            <Switch
+              id="service-available"
+              checked={formData.isAvailable}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, isAvailable: checked }))
+              }
+              className="data-checked:bg-emerald-500"
+            />
+          </div>
+
+          <DialogFooter className="mt-6 pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isUploading}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isUploading}
+              className="bg-amber-500 text-zinc-950 hover:bg-amber-400"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Uploading & Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-function ServiceActions({ service }: { service: IService }) {
+function ServiceActions({
+  service,
+  onEdit,
+  onDelete,
+}: {
+  service: IService;
+  onEdit: (service: IService) => void;
+  onDelete: (service: IService) => void;
+}) {
   return (
     <div className="flex items-center justify-end gap-1.5">
       <Button
@@ -174,7 +679,7 @@ function ServiceActions({ service }: { service: IService }) {
         size="icon-sm"
         aria-label={`Edit ${service.title}`}
         title="Edit service"
-        onClick={() => handleEdit(service)}
+        onClick={() => onEdit(service)}
         className="rounded-lg border-border/70 text-muted-foreground transition-colors hover:border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-300"
       >
         <Pencil className="size-3.5" aria-hidden="true" />
@@ -185,7 +690,7 @@ function ServiceActions({ service }: { service: IService }) {
         size="icon-sm"
         aria-label={`Delete ${service.title}`}
         title="Delete service"
-        onClick={() => handleDelete(service)}
+        onClick={() => onDelete(service)}
         className="rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
       >
         <Trash2 className="size-3.5" aria-hidden="true" />
@@ -228,6 +733,31 @@ export function MyServicesTable({
   services,
   loadError = false,
 }: MyServicesTableProps) {
+  const [editingService, setEditingService] = useState<IService | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const [deletingService, setDeletingService] = useState<IService | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleEdit = (service: IService) => {
+    setEditingService(service);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = (service: IService) => {
+    setDeletingService(service);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingService) {
+      console.log("Delete Service Data:", deletingService);
+      toast.success(`Service "${deletingService.title}" deleted.`);
+    }
+    setIsDeleteDialogOpen(false);
+    setDeletingService(null);
+  };
+
   const counts = {
     total: services.length,
     approved: services.filter(
@@ -440,7 +970,11 @@ export function MyServicesTable({
                         <AvailabilityIndicator service={service} />
                       </TableCell>
                       <TableCell className="px-4 py-3">
-                        <ServiceActions service={service} />
+                        <ServiceActions
+                          service={service}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -511,6 +1045,41 @@ export function MyServicesTable({
           </>
         )}
       </section>
+
+      {/* Edit Service Dialog */}
+      <EditServiceDialog
+        service={editingService}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+      />
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete{" "}
+              <strong className="font-semibold text-foreground">
+                {deletingService?.title || "this service"}
+              </strong>
+              . This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Service
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
