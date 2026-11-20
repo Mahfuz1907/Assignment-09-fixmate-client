@@ -50,3 +50,12 @@ export const EditService = async (id: string, data: ICreateServiceEditData) => {
   const result = await res.json();
   return result;
 };
+
+// Delete Service
+export const DeleteService = async (id: string) => {
+  const res = await fetch(`${BASE_URL}/service/delete/${id}`, {
+    method: "DELETE",
+  });
+  const result = await res.json();
+  return result;
+};

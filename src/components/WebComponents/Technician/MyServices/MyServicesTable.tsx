@@ -67,7 +67,11 @@ import type {
   ServiceCategory,
   ServiceMode,
 } from "@/library/type";
-import { EditService, UpdateAvailable } from "@/library/Action/Services";
+import {
+  DeleteService,
+  EditService,
+  UpdateAvailable,
+} from "@/library/Action/Services";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -738,6 +742,7 @@ export function MyServicesTable({
 
   const [deletingService, setDeletingService] = useState<IService | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const router = useRouter();
 
   const handleEdit = (service: IService) => {
     setEditingService(service);
@@ -749,10 +754,18 @@ export function MyServicesTable({
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingService) {
       console.log("Delete Service Data:", deletingService);
-      toast.success(`Service "${deletingService.title}" deleted.`);
+      const result = await DeleteService(deletingService._id as string);
+      console.log(result);
+
+      if (result.acknowledged) {
+        toast.success(`Service "${deletingService.title}" deleted.`, {
+          position: "top-center",
+        });
+        router.refresh();
+      }
     }
     setIsDeleteDialogOpen(false);
     setDeletingService(null);
