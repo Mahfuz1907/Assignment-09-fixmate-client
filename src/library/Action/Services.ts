@@ -59,3 +59,26 @@ export const DeleteService = async (id: string) => {
   const result = await res.json();
   return result;
 };
+
+// Get all Services
+export const GetAllServices = async () => {
+  const res = await fetch(`${BASE_URL}/all-services`);
+  const result = await res.json();
+  return result;
+};
+
+// Update Service Status
+export const UpdateStatus = async (
+  id: string,
+  data: { approvalStatus: string },
+) => {
+  const res = await fetch(`${BASE_URL}/services/update-status/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ approvalStatus: data.approvalStatus }),
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+  const result = await res.json();
+  return result;
+};
