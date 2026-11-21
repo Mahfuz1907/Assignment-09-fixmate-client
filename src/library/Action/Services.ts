@@ -89,3 +89,10 @@ export const GetAllServicesByQuery = async (query: string) => {
   const result = await res.json();
   return result;
 };
+
+// Get Service Details
+export const GetServiceDetails = async (id: string) => {
+  const res = await fetch(`${BASE_URL}/service/${id}`);
+  const result = await res.json();
+  return result;
+};

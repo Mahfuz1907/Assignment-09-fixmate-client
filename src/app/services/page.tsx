@@ -22,8 +22,6 @@ export const metadata: Metadata = {
     "Browse approved repair services from verified technicians. Filter by category and service mode, search by title, and sort by price or newest.",
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
-
 type SearchParams = Record<string, string | string[] | undefined>;
 
 type BrowseQuery = {
