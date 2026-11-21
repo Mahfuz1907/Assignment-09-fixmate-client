@@ -82,3 +82,10 @@ export const UpdateStatus = async (
   const result = await res.json();
   return result;
 };
+
+// Get all service by query available approved
+export const GetAllServicesByQuery = async (query: string) => {
+  const res = await fetch(`${BASE_URL}/services/available-approved?${query}`);
+  const result = await res.json();
+  return result;
+};

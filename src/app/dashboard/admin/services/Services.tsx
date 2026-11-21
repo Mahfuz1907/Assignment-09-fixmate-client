@@ -6,11 +6,21 @@ import { GetAllServices } from "@/library/Action/Services";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { IService } from "@/library/type";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const Services = () => {
   const [services, setServices] = useState<IService[]>([]);
-  const [query, setQuery] = useState<string>("approvalStatus=pending");
+  // const [query, setQuery] = useState<string>("approvalStatus=pending");
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const currentStatus = searchParams.get("approvalStatus") ?? "pending";
+
+  const [query, setQuery] = useState<string>(
+    currentStatus ? `approvalStatus=${currentStatus}` : "",
+  );
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -22,8 +32,16 @@ const Services = () => {
   }, [query, refreshTrigger]);
 
   const handleTabChange = (value: string) => {
-    if (value === "") setQuery("");
-    else setQuery(`approvalStatus=${value}`);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "") {
+      params.delete("approvalStatus");
+      setQuery("");
+    } else {
+      params.set("approvalStatus", value);
+      setQuery(`approvalStatus=${value}`);
+    }
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
   return (
     <div className="space-y-6 p-4">
