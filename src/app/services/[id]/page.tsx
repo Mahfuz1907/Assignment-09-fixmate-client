@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowRight,
   BadgeCheck,
   ChevronRight,
   Clock,
@@ -16,15 +15,15 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { GetServiceDetails } from "@/library/Action/Services";
-import type { IService, IUsers } from "@/library/type";
+import type { IService, ISessionUser, IUsers } from "@/library/type";
 import { GetUsers } from "@/library/Action/Users";
+import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
+import ActionButton from "./ActionButton";
+import { GetBookingsByCustomer } from "@/library/Action/Bookings";
 
-// The details page reads request-time data, so let the route block (and return
-// a real 404) instead of prerendering an instant shell.
 export const instant = false;
 
 const PRICE_FORMATTER = new Intl.NumberFormat("en-US", {
@@ -138,6 +137,9 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
   const technician = await getTechnicianProfile(service.technicianEmail);
   const technicianName = technician?.name || service.technicianName;
   const isHomeVisit = service.serviceMode === "Home Visit";
+  const session = await GettingSessionFromServer();
+  const user = session?.user as ISessionUser;
+  const allBookings = await GetBookingsByCustomer(user?.email);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
@@ -271,13 +273,13 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
               />
             </dl>
 
-            <Button
-              type="button"
-              className="mt-5 h-11 w-full gap-2 rounded-xl bg-linear-to-r from-amber-400 via-amber-500 to-orange-500 text-sm font-semibold text-zinc-950 shadow-[0_10px_24px_-14px_rgba(245,158,11,0.9)] hover:from-amber-300 hover:to-orange-500"
-            >
-              Request Repair
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Button>
+            {/* button here */}
+
+            <ActionButton
+              service={service}
+              user={user}
+              allBookings={allBookings}
+            />
             <p className="mt-2 text-center text-[11px] text-muted-foreground">
               No payment until the technician confirms your request.
             </p>

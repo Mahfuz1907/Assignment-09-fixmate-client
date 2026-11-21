@@ -88,3 +88,56 @@ export interface IUsers {
   image: string;
   phone: string;
 }
+
+export interface ISessionUser {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  role: string;
+  area: string;
+  bio: string;
+  image?: string | null | undefined;
+  phone: string;
+}
+
+export interface IBookings {
+  _id: string;
+  serviceId: string;
+  serviceTitle: string;
+  serviceImage: string;
+  category: string;
+  basePrice: number;
+  technicianName: string;
+  technicianEmail: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  address: string;
+  preferredDate: Date;
+  problemDescription: string;
+  status: string;
+  finalAmount: number;
+  paymentStatus: string;
+}
+
+export interface IAddBookings {
+  serviceId: string;
+  serviceTitle: string;
+  serviceImage: string;
+  category: string;
+  basePrice: number;
+  technicianName: string;
+  technicianEmail: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  address: string;
+  preferredDate: Date;
+  problemDescription: string;
+  status: string;
+  finalAmount: number;
+  paymentStatus: string;
+}
