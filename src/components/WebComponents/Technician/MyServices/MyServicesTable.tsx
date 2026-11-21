@@ -343,6 +343,7 @@ function EditServiceDialog({
       image: finalImageUrl,
       technicianName: service.technicianName,
       technicianEmail: service.technicianEmail,
+      approvalStatus: "pending",
     };
 
     console.log("Updated Service Data:", updatedData);

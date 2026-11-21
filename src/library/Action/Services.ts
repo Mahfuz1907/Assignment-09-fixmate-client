@@ -96,3 +96,10 @@ export const GetServiceDetails = async (id: string) => {
   const result = await res.json();
   return result;
 };
+
+// Get Featured Services
+export const GetFeaturedServices = async () => {
+  const res = await fetch(`${BASE_URL}/featured-service`);
+  const result = await res.json();
+  return result;
+};

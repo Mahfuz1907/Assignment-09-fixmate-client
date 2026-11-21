@@ -122,19 +122,6 @@ interface FeaturedServicesProps {
 }
 
 export function FeaturedServices({ initialServices }: FeaturedServicesProps) {
-  // If services are passed (or fetched from DB), filter approvalStatus === 'approved' and isAvailable === true,
-  // sorted by createdAt desc, limited to 6.
-  const servicesToDisplay =
-    (initialServices || []).length > 0
-      ? [...initialServices!]
-          .filter((s) => s.approvalStatus === "approved" && s.isAvailable)
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          )
-          .slice(0, 6)
-      : [];
-
   return (
     <section className="py-16 sm:py-20 bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -170,7 +157,7 @@ export function FeaturedServices({ initialServices }: FeaturedServicesProps) {
 
         {/* Services Grid (6 Latest services equal height and width) */}
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {servicesToDisplay.map((service) => (
+          {initialServices?.map((service) => (
             <div key={service._id} className="h-full">
               <ServiceCard service={service} />
             </div>

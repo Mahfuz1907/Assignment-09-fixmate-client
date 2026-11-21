@@ -70,7 +70,7 @@ export interface ICreateServiceEditData {
   serviceArea: string;
   technicianName: string;
   technicianEmail: string;
-  approvalStatus: ServiceApprovalStatus;
+  approvalStatus: string;
   isAvailable: boolean;
   createdAt: Date | string;
 }

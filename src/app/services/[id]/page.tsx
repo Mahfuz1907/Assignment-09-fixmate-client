@@ -21,8 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { GetServiceDetails } from "@/library/Action/Services";
 import type { IService, IUsers } from "@/library/type";
-
-const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+import { GetUsers } from "@/library/Action/Users";
 
 // The details page reads request-time data, so let the route block (and return
 // a real 404) instead of prerendering an instant shell.
@@ -43,6 +42,14 @@ interface ServiceDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
+export const generateMetadata = async ({ params }: ServiceDetailsPageProps) => {
+  const { id } = await params;
+  const service = await GetServiceDetails(id);
+  return {
+    title: `${service.title} . FixMate`,
+  };
+};
+
 function isService(value: unknown): value is IService {
   return (
     Boolean(value) &&
@@ -61,21 +68,15 @@ async function getTechnicianProfile(
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/users`, { cache: "no-store" });
+    const users: unknown = await GetUsers();
 
-    if (!res.ok) {
-      return null;
-    }
-
-    const users: unknown = await res.json();
+    // const users: unknown = await res.json();
 
     if (!Array.isArray(users)) {
       return null;
     }
 
-    return (
-      (users as IUsers[]).find((user) => user.email === email) ?? null
-    );
+    return (users as IUsers[]).find((user) => user.email === email) ?? null;
   } catch {
     return null;
   }
@@ -158,7 +159,7 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
           <ChevronRight className="size-3 opacity-60" aria-hidden="true" />
           <span
             aria-current="page"
-            className="max-w-[14rem] truncate text-foreground sm:max-w-sm"
+            className="max-w-56 truncate text-foreground sm:max-w-sm"
           >
             {service.title}
           </span>
@@ -290,7 +291,8 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
               Service description
             </h2>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              {service.description || "The technician hasn’t added a description yet."}
+              {service.description ||
+                "The technician hasn’t added a description yet."}
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
