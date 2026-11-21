@@ -60,9 +60,9 @@ export const DeleteService = async (id: string) => {
   return result;
 };
 
-// Get all Services
-export const GetAllServices = async () => {
-  const res = await fetch(`${BASE_URL}/all-services`);
+// Get all Services for admin
+export const GetAllServices = async (query = "") => {
+  const res = await fetch(`${BASE_URL}/all-services?${query}`);
   const result = await res.json();
   return result;
 };

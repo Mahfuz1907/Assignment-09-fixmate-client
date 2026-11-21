@@ -20,9 +20,13 @@ import { UpdateStatus } from "@/library/Action/Services";
 import { IService } from "@/library/type";
 import { format } from "date-fns";
 import { Check, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
+
+interface ManageTypes {
+  services: IService[];
+  setRefreshTrigger: Dispatch<SetStateAction<number>>;
+}
 
 const statusBadge = (status: IService["approvalStatus"]) => {
   const colors = {
@@ -43,27 +47,17 @@ const statusBadge = (status: IService["approvalStatus"]) => {
   );
 };
 
-const ManageServicesTable = ({ services }: { services: IService[] }) => {
-  const [servicesData, setServicesData] = useState<IService[]>(services);
-  const router = useRouter();
-
+const ManageServicesTable = ({ services, setRefreshTrigger }: ManageTypes) => {
   const handleApproval = async (
     id: string,
     newStatus: "approved" | "rejected",
   ) => {
     const result = await UpdateStatus(id, { approvalStatus: newStatus });
-    console.log(result);
 
     if (result.acknowledged) {
-      toast.success(`Service ${newStatus}`);
-      router.refresh();
+      toast.success(`Service ${newStatus}`, { position: "top-center" });
+      setRefreshTrigger((prev) => prev + 1);
     }
-
-    setServicesData((prev) =>
-      prev.map((svc) =>
-        svc._id === id ? { ...svc, approvalStatus: newStatus } : svc,
-      ),
-    );
   };
 
   return (
@@ -85,7 +79,7 @@ const ManageServicesTable = ({ services }: { services: IService[] }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {servicesData.map((svc) => (
+        {services.map((svc) => (
           <TableRow
             key={svc._id}
             className="border-border/60 hover:bg-muted/30"

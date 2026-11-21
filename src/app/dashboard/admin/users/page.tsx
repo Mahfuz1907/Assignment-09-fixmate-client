@@ -1,7 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Users } from "lucide-react";
-
 import { ManageUsersTable } from "@/components/WebComponents/Admin/Users";
 import { GetUsers } from "@/library/Action/Users";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
