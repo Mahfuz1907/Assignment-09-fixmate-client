@@ -157,3 +157,18 @@ export interface IPayments {
   paymentStatus: string;
   paidAt: Date | string;
 }
+
+export interface BookingPaymentPayload {
+  paymentStatus: "paid";
+  transactionId: string;
+  customerEmail: string;
+  amountPaid: number;
+}
+
+export interface MarkBookingPaidPayload {
+  bookingId: string;
+  paymentStatus?: string;
+  transactionId: string;
+  customerEmail?: string;
+  amountPaid: number;
+}

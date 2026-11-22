@@ -29,8 +29,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { IBookings } from "@/library/type";
 import { CancelBooking } from "@/library/Action/Bookings";
 import { toast } from "sonner";
-
-const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+import PayBookingButton from "@/components/Payment/PayBookingButton";
 
 export function formatDate(value: Date | string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -118,28 +117,6 @@ export function paymentBadge(booking: IBookings) {
   }
 }
 
-function startStripeCheckout(booking: IBookings) {
-  try {
-    void (async () => {
-      const res = await fetch(`${BASE_URL}/payments/checkout`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          bookingId: booking._id,
-          amount: booking.finalAmount ?? booking.basePrice,
-          currency: "USD",
-        }),
-      });
-      const data: { url?: string } = await res.json();
-      if (res.ok && data?.url) {
-        window.location.href = data.url;
-      }
-    })();
-  } catch {
-    // Checkout is handled by the payments service.
-  }
-}
-
 function StatusActions({
   booking,
   onCancel,
@@ -192,12 +169,7 @@ function StatusActions({
 
   if (booking.status === "completed" && booking.paymentStatus === "unpaid") {
     return (
-      <Button
-        className="h-8 gap-1"
-        onClick={() => startStripeCheckout(booking)}
-      >
-        Pay Now
-      </Button>
+      <PayBookingButton bookingId={booking._id} amount={booking.basePrice} />
     );
   }
 
