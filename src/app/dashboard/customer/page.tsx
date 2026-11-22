@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { CircleDot, SquareCheck, StickyNote } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import CustomerOverviewCharts from "./CustomerOverviewCharts";
 import { GetBookingsByCustomer } from "@/library/Action/Bookings";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import type { IBookings } from "@/library/type";
@@ -147,6 +148,8 @@ const CustomerDashboard = async () => {
           />
         ))}
       </div>
+
+      <CustomerOverviewCharts bookings={bookings} />
     </div>
   );
 };

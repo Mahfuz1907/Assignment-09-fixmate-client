@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ServiceStats } from "@/components/WebComponents/Technician/Overview/Stats";
+import TechnicianOverviewCharts from "./TechnicianOverviewCharts";
 import { GetBookingsByTechnician } from "@/library/Action/Bookings";
 import { GetServiceByTechnician } from "@/library/Action/Services";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
-import { IService } from "@/library/type";
+import { IBookings, IService } from "@/library/type";
 import { PlusCircle } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -72,6 +73,7 @@ async function ServicesSection() {
   const email = session?.user?.email;
 
   let services: IService[] = [];
+  let bookings: IBookings[] = [];
   let loadError = false;
   let pendingRequests = 0;
 
@@ -79,8 +81,9 @@ async function ServicesSection() {
     try {
       const payload = await GetServiceByTechnician(email);
       services = normaliseServices(payload);
-      const bookings = await GetBookingsByTechnician(email);
-      if (Array.isArray(bookings)) {
+      const rawBookings = await GetBookingsByTechnician(email);
+      if (Array.isArray(rawBookings)) {
+        bookings = rawBookings as IBookings[];
         pendingRequests = bookings.filter(
           (booking) => booking.status === "requested",
         ).length;
@@ -91,11 +94,14 @@ async function ServicesSection() {
   }
 
   return (
-    <ServiceStats
-      services={services}
-      loadError={loadError}
-      pendingRequests={pendingRequests}
-    />
+    <>
+      <ServiceStats
+        services={services}
+        loadError={loadError}
+        pendingRequests={pendingRequests}
+      />
+      <TechnicianOverviewCharts bookings={bookings} services={services} />
+    </>
   );
 }
 

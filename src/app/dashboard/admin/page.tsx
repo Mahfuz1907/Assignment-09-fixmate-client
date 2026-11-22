@@ -1,6 +1,7 @@
 import { GetAllServices } from "@/library/Action/Services";
 import { GetUsers } from "@/library/Action/Users";
-import { IService, IUsers } from "@/library/type";
+import { GetAllBookings } from "@/library/Action/Bookings";
+import { IService, IUsers, IBookings } from "@/library/type";
 import { ShieldCheck, TriangleAlert, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
@@ -12,12 +13,28 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { cn } from "cn";
+import OverviewCharts from "./OverviewCharts";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard · FixMate Admin",
   description:
     "Overview of platform health: users, technicians, and pending services.",
 };
+
+function normalizeBookings(payload: unknown): IBookings[] {
+  if (Array.isArray(payload)) {
+    return payload as IBookings[];
+  }
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "data" in payload &&
+    Array.isArray((payload as { data: unknown }).data)
+  ) {
+    return (payload as { data: IBookings[] }).data;
+  }
+  return [];
+}
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -41,7 +58,9 @@ function StatCard({
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             {label}
           </p>
-          <CardDescription className="text-[11px]">{description}</CardDescription>
+          <CardDescription className="text-[11px]">
+            {description}
+          </CardDescription>
         </div>
         <span
           className={cn(
@@ -67,6 +86,7 @@ const AdminDashboard = async () => {
     (user: IUsers) => user.role === "technician",
   );
   const allServices = await GetAllServices();
+  const bookings = normalizeBookings(await GetAllBookings());
   const pendingServices = allServices.filter(
     (service: IService) => service.approvalStatus === "pending",
   );
@@ -131,6 +151,8 @@ const AdminDashboard = async () => {
           />
         ))}
       </div>
+
+      <OverviewCharts bookings={bookings} services={allServices} />
     </div>
   );
 };
