@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ServiceStats } from "@/components/WebComponents/Technician/Overview/Stats";
+import { GetBookingsByTechnician } from "@/library/Action/Bookings";
 import { GetServiceByTechnician } from "@/library/Action/Services";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import { IService } from "@/library/type";
@@ -72,17 +73,30 @@ async function ServicesSection() {
 
   let services: IService[] = [];
   let loadError = false;
+  let pendingRequests = 0;
 
   if (email) {
     try {
       const payload = await GetServiceByTechnician(email);
       services = normaliseServices(payload);
+      const bookings = await GetBookingsByTechnician(email);
+      if (Array.isArray(bookings)) {
+        pendingRequests = bookings.filter(
+          (booking) => booking.status === "requested",
+        ).length;
+      }
     } catch {
       loadError = true;
     }
   }
 
-  return <ServiceStats services={services} loadError={loadError} />;
+  return (
+    <ServiceStats
+      services={services}
+      loadError={loadError}
+      pendingRequests={pendingRequests}
+    />
+  );
 }
 
 const TechnicianDashboard = () => {

@@ -2,8 +2,6 @@
 
 import {
   BadgeCheck,
-  Clock,
-  EyeOff,
   FolderKanban,
   TriangleAlert,
 } from "lucide-react";
@@ -11,53 +9,45 @@ import {
 import { cn } from "@/lib/utils";
 import type { IService } from "@/library/type";
 
-type MyServicesTableProps = {
+type ServiceStatsProps = {
   services: IService[];
   loadError?: boolean;
+  pendingRequests?: number;
 };
 
 export function ServiceStats({
   services,
   loadError = false,
-}: MyServicesTableProps) {
+  pendingRequests = 0,
+}: ServiceStatsProps) {
   const counts = {
     total: services.length,
     approved: services.filter(
       (service) => service.approvalStatus === "approved",
     ).length,
-    pending: services.filter((service) => service.approvalStatus === "pending")
-      .length,
-    paused: services.filter((service) => !service.isAvailable).length,
   };
 
   const stats = [
     {
-      label: "Total listings",
+      label: "Total Services",
       value: counts.total,
       icon: FolderKanban,
       tileClass: "bg-muted text-foreground",
       valueClass: "text-foreground",
     },
     {
-      label: "Approved",
+      label: "Approved Services",
       value: counts.approved,
       icon: BadgeCheck,
       tileClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       valueClass: "text-emerald-600 dark:text-emerald-400",
     },
     {
-      label: "Pending review",
-      value: counts.pending,
-      icon: Clock,
+      label: "Pending Requests",
+      value: pendingRequests,
+      icon: TriangleAlert,
       tileClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       valueClass: "text-amber-600 dark:text-amber-400",
-    },
-    {
-      label: "Paused",
-      value: counts.paused,
-      icon: EyeOff,
-      tileClass: "bg-muted text-muted-foreground",
-      valueClass: "text-muted-foreground",
     },
   ] as const;
 
@@ -77,14 +67,14 @@ export function ServiceStats({
       ) : null}
 
       {/* Summary */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {stats.map((stat) => {
           const StatIcon = stat.icon;
 
           return (
             <div
               key={stat.label}
-              className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 shadow-xs"
+              className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 shadow-xs transition-all duration-200 hover:shadow-sm"
             >
               <span
                 className={cn(
@@ -111,19 +101,6 @@ export function ServiceStats({
           );
         })}
       </div>
-
-      {counts.pending > 0 ? (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 dark:text-amber-300">
-          <Clock className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <p>
-            <strong className="font-semibold">
-              {counts.pending} service{counts.pending === 1 ? "" : "s"}
-            </strong>{" "}
-            awaiting admin review. Listings stay hidden from customers until
-            they&apos;re approved.
-          </p>
-        </div>
-      ) : null}
     </div>
   );
 }
