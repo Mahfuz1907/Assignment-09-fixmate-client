@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Banknote, Check, Copy, CreditCard, FileText, ReceiptText } from "lucide-react";
+import {
+  ArrowRight,
+  Banknote,
+  Check,
+  Copy,
+  CreditCard,
+  FileText,
+  ReceiptText,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,7 +91,11 @@ export default function PaymentSuccessCard({
 
         <CardContent className="space-y-5 px-4 pb-6 sm:px-8">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <InfoRow icon={FileText} label="Booking ID" value={info.bookingId || "—"} />
+            <InfoRow
+              icon={FileText}
+              label="Booking ID"
+              value={info.bookingId || "—"}
+            />
             <InfoRow
               icon={CreditCard}
               label="Amount Paid"

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { IBookings, IService, ISessionUser } from "@/library/type";
 import { ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import RequestFormModal from "./RequestFormModal";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ interface ActionButtonType {
 
 const ActionButton = ({ service, user, allBookings }: ActionButtonType) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const activeStatuses = ["requested", "accepted", "in-progress"];
   const isAlreadyBooked = allBookings.some(
@@ -25,7 +26,7 @@ const ActionButton = ({ service, user, allBookings }: ActionButtonType) => {
 
   const handleButton = () => {
     if (!user) {
-      router.push("/sign-in");
+      router.push(`/sign-in?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
     if (isAlreadyBooked) {

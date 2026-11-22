@@ -455,7 +455,7 @@ function SidebarNav({
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              render={<Link href="/profile" />}
+              render={<Link href="/dashboard/profile" />}
               className="cursor-pointer text-xs"
             >
               <CircleUserRound className="mr-2 size-3.5" />
@@ -614,7 +614,7 @@ export function DashboardSidebarLayout({
             </Link>
 
             <Link
-              href="/profile"
+              href="/dashboard/profile"
               className="flex items-center gap-2.5 rounded-full border border-border/70 bg-card p-1 pr-3 hover:border-amber-500/40 transition-colors shadow-xs"
             >
               <Avatar className="size-7.5 ring-1 ring-amber-500/30">

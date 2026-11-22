@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Check,
   CircleExclamationPoint,
-  LoaderCircle,
   Mail,
   ShieldCheck,
   Sparkles,
@@ -158,7 +157,7 @@ export function SignUpForm() {
 
     if (data) {
       toast.success("User Created Successfully", { position: "top-center" });
-      router.push("/");
+      router.push(`/dashboard/${userData.role}`);
     } else if (error) {
       toast.error("User Sign Up Failed", { position: "top-center" });
       console.log(error);

@@ -246,7 +246,7 @@ function AccountMenu({ user }: { user: NavbarUser }) {
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          render={<Link href="/profile" />}
+          render={<Link href="/dashboard/profile" />}
           className="gap-2 rounded-lg px-2 py-2"
         >
           <UserRoundPen
@@ -534,7 +534,7 @@ const Navbar = () => {
                       />
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/dashboard/profile"
                       onClick={() => setOpen(false)}
                       className={cn(
                         buttonVariants({ variant: "ghost" }),

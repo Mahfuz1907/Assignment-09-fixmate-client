@@ -3,13 +3,7 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  LoaderCircle,
-  LogIn,
-  Mail,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, LogIn, Mail, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordField, TextField } from "./AuthFields";
 import { signIn } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type SignInValues = {
   email: string;
@@ -25,6 +19,21 @@ type SignInValues = {
 };
 
 type SignInErrors = Partial<Record<keyof SignInValues, string>>;
+
+const DASHBOARD_BY_ROLE: Record<string, string> = {
+  customer: "/dashboard/customer",
+  technician: "/dashboard/technician",
+  admin: "/dashboard/admin",
+};
+
+function isSafeRedirect(value: string | null): value is string {
+  return (
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.startsWith("/\\")
+  );
+}
 
 export function SignInForm() {
   const [values, setValues] = useState<SignInValues>({
@@ -34,6 +43,7 @@ export function SignInForm() {
   const [errors, setErrors] = useState<SignInErrors>({});
   const [rememberMe, setRememberMe] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   function handleChange(field: keyof SignInValues) {
     return (event: ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +112,9 @@ export function SignInForm() {
 
     if (data) {
       toast.success("User Signed In Successfully", { position: "top-center" });
-      router.push("/");
+      const redirectTarget = searchParams?.get("redirect");
+      const roleTarget = DASHBOARD_BY_ROLE[data.user?.role ?? ""] ?? "/";
+      router.push(isSafeRedirect(redirectTarget) ? redirectTarget : roleTarget);
     } else if (error) {
       toast.error("User Sign In Failed", { position: "top-center" });
       console.log(error);
