@@ -22,7 +22,7 @@ export const GetBookingsByCustomer = async (email: string) => {
   return result;
 };
 
-// Cancel Booking (Update the status to cancel)
+// Update Booking Status
 export const CancelBooking = async (id: string, data: { status: string }) => {
   const res = await fetch(`${BASE_URL}/bookings/cancel/${id}`, {
     method: "PATCH",
@@ -31,6 +31,20 @@ export const CancelBooking = async (id: string, data: { status: string }) => {
       "content-type": "application/json",
     },
   });
+  const result = await res.json();
+  return result;
+};
+
+// Get Bookings by each Technician
+export const GetBookingsByTechnician = async (email: string) => {
+  const res = await fetch(`${BASE_URL}/bookings/technician/${email}`);
+  const result = await res.json();
+  return result;
+};
+
+// Get All Bookings
+export const GetAllBookings = async () => {
+  const res = await fetch(`${BASE_URL}/bookings`);
   const result = await res.json();
   return result;
 };

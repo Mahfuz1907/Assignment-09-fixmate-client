@@ -141,3 +141,19 @@ export interface IAddBookings {
   finalAmount: number;
   paymentStatus: string;
 }
+
+export interface IPayments {
+  _id?: string;
+  bookingId: string;
+  serviceTitle: string;
+  customerName: string;
+  customerEmail: string;
+  technicianName: string;
+  technicianEmail: string;
+  amount: number;
+  currency: string;
+  transactionId: string;
+  stripeSessionId: string;
+  paymentStatus: string;
+  paidAt: Date | string;
+}
