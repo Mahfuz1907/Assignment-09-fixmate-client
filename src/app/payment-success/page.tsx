@@ -1,6 +1,13 @@
 import { redirect } from "next/navigation";
 import { stripe } from "@/lib/stripe";
 import { MarkBookingPaid } from "@/library/Action/Payment";
+import PaymentSuccessCard from "./PaymentSuccessCard";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Payment Successful · FixMate",
+  description: "Your payment completed successfully.",
+};
 
 type PaymentSuccessPageProps = {
   searchParams: Promise<{ session_id?: string }>;
@@ -49,11 +56,13 @@ export default async function PaymentSuccessPage({
   }
 
   return (
-    <div>
-      <h1>Payment successful!</h1>
-      {bookingId && <p>Booking ID: {bookingId}</p>}
-      <p>Paid: ${amountPaid}</p>
-      {transactionId && <p>Transaction ID: {transactionId}</p>}
-    </div>
+    <PaymentSuccessCard
+      info={{
+        bookingId,
+        amountPaid,
+        transactionId,
+        sessionId: session_id,
+      }}
+    />
   );
 }
