@@ -143,7 +143,7 @@ export default function RequestFormModal({
       toast.success(`${booking.serviceTitle} is booked successfully!`, {
         position: "top-center",
       });
-      router.push("/bookings");
+      router.push("/dashboard/customer/bookings");
     }
 
     setForm({

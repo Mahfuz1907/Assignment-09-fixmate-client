@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { IBookings } from "@/library/type";
+import { CancelBooking } from "@/library/Action/Bookings";
+import { toast } from "sonner";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -143,7 +145,7 @@ function StatusActions({
   onCancel,
 }: {
   booking: IBookings;
-  onCancel: (id: string) => void;
+  onCancel: (booking: IBookings) => void;
 }) {
   if (booking.paymentStatus === "paid") {
     return (
@@ -170,15 +172,15 @@ function StatusActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel this request?</AlertDialogTitle>
             <AlertDialogDescription>
-              “{booking.serviceTitle}” will be cancelled. You can still
-              request this repair again from the services page.
+              “{booking.serviceTitle}” will be cancelled. You can still request
+              this repair again from the services page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="h-8">Back</AlertDialogCancel>
             <AlertDialogAction
               className="h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => onCancel(booking._id)}
+              onClick={() => onCancel(booking)}
             >
               Yes, cancel
             </AlertDialogAction>
@@ -188,10 +190,7 @@ function StatusActions({
     );
   }
 
-  if (
-    booking.status === "completed" &&
-    booking.paymentStatus === "unpaid"
-  ) {
+  if (booking.status === "completed" && booking.paymentStatus === "unpaid") {
     return (
       <Button
         className="h-8 gap-1"
@@ -210,7 +209,7 @@ function BookingsCard({
   onCancel,
 }: {
   booking: IBookings;
-  onCancel: (id: string) => void;
+  onCancel: (booking: IBookings) => void;
 }) {
   return (
     <Card className="border-border/70 shadow-sm">
@@ -266,12 +265,28 @@ export default function BookingsTable({
   const [bookings, setBookings] = useState(initialBookings);
   const isMobile = useIsMobile();
 
-  const onCancel = (id: string) =>
+  const handleCancel = async (booking: IBookings) => {
+    const nextStatus = "cancelled";
+    const result = await CancelBooking(booking._id, { status: nextStatus });
+
+    if (result.acknowledged) {
+      toast.success(`${booking.serviceTitle} booking is cancelled!`, {
+        position: "top-center",
+      });
+    }
+
+    const updatedBooking: IBookings = {
+      ...booking,
+      status: nextStatus,
+    };
+
     setBookings((prev) =>
-      prev.map((booking) =>
-        booking._id === id ? { ...booking, status: "cancelled" } : booking,
-      ),
+      prev.map((b) => (b._id === booking._id ? updatedBooking : b)),
     );
+
+    console.log("Updated booking:", updatedBooking);
+    console.log("New status:", updatedBooking.status);
+  };
 
   return (
     <div>
@@ -332,7 +347,7 @@ export default function BookingsTable({
                 </TableCell>
                 <TableCell className="align-middle text-right">
                   <div className="flex justify-end">
-                    <StatusActions booking={booking} onCancel={onCancel} />
+                    <StatusActions booking={booking} onCancel={handleCancel} />
                   </div>
                 </TableCell>
               </TableRow>
@@ -346,7 +361,7 @@ export default function BookingsTable({
           <BookingsCard
             key={booking._id}
             booking={booking}
-            onCancel={onCancel}
+            onCancel={handleCancel}
           />
         ))}
       </div>

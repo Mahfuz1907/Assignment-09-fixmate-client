@@ -21,3 +21,16 @@ export const GetBookingsByCustomer = async (email: string) => {
   const result = await res.json();
   return result;
 };
+
+// Cancel Booking (Update the status to cancel)
+export const CancelBooking = async (id: string, data: { status: string }) => {
+  const res = await fetch(`${BASE_URL}/bookings/cancel/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: data.status }),
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+  const result = await res.json();
+  return result;
+};
