@@ -1,51 +1,44 @@
 import type { SVGProps } from "react";
 import Link from "next/link";
-import {
-  Clock,
-  Mail,
-  MapPin,
-  Phone,
-  ShieldCheck,
-  Sparkles,
-  Wrench,
-} from "lucide-react";
+import { Clock, Mail, MapPin, Phone, ShieldCheck, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { BackToTop, NewsletterForm } from "./FooterActions";
+import { BackToTop } from "./FooterActions";
 
 const QUICK_LINKS = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
-  { label: "About", href: "/about" },
+  { label: "How It Works", href: "/about" },
 ] as const;
 
 const CATEGORIES = [
-  { label: "Plumbing", href: "/services?category=plumbing" },
-  { label: "Electrical", href: "/services?category=electrical" },
-  { label: "Appliance Repair", href: "/services?category=appliance-repair" },
-  { label: "Carpentry", href: "/services?category=carpentry" },
-  { label: "Painting", href: "/services?category=painting" },
-  { label: "Cleaning", href: "/services?category=cleaning" },
+  { label: "Smartphone", href: "/services?category=Smartphone" },
+  { label: "Laptop & PC", href: "/services?category=Laptop%20%26%20PC" },
+  { label: "AC", href: "/services?category=AC" },
+  { label: "Refrigerator", href: "/services?category=Refrigerator" },
+  { label: "TV", href: "/services?category=TV" },
+  { label: "Washing Machine", href: "/services?category=Washing%20Machine" },
+  { label: "Electrical", href: "/services?category=Electrical" },
 ] as const;
 
 const CONTACT_ITEMS = [
   {
     label: "Email us",
-    value: "hello@fixmate.com",
-    href: "mailto:hello@fixmate.com",
+    value: "admin@fixmate.com",
+    href: "mailto:admin@fixmate.com",
     icon: Mail,
   },
   {
     label: "Call us",
-    value: "+1 (555) 012-3456",
-    href: "tel:+15550123456",
+    value: "+8801700000000",
+    href: "tel:+8801700000000",
     icon: Phone,
   },
   {
     label: "Visit us",
-    value: "1420 Cedar Avenue, Suite 210\nAustin, TX 78701",
-    href: null,
+    value: "Rajshahi, Bangladesh",
+    href: "https://www.google.com/maps/place/Rajshahi",
     icon: MapPin,
   },
 ] as const;
@@ -164,30 +157,6 @@ const Footer = () => {
       />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:px-8 sm:pt-12 lg:px-10 lg:pt-14">
-        {/* Newsletter */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-7">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-16 -top-24 size-56 rounded-full bg-amber-500/10 blur-3xl"
-          />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400">
-                <Sparkles className="size-3.5" aria-hidden="true" />
-                The FixMate dispatch
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Good fixes start with good advice.
-              </h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-zinc-400">
-                Monthly maintenance tips and seasonal checklists. No spam — just
-                the useful stuff.
-              </p>
-            </div>
-            <NewsletterForm />
-          </div>
-        </div>
-
         {/* Main footer */}
         <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-12">
           {/* Brand */}
@@ -220,7 +189,7 @@ const Footer = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={social.label}
-                      className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-zinc-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-300 focus-visible:border-amber-500/60 focus-visible:ring-3 focus-visible:ring-amber-500/30 focus-visible:outline-none"
+                      className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/3 text-zinc-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-300 focus-visible:border-amber-500/60 focus-visible:ring-3 focus-visible:ring-amber-500/30 focus-visible:outline-none"
                     >
                       <SocialIcon className="size-4" />
                     </a>
@@ -250,7 +219,7 @@ const Footer = () => {
                 <Link
                   key={category.label}
                   href={category.href}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-400 transition-all duration-200 hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-300 focus-visible:border-amber-500/60 focus-visible:ring-3 focus-visible:ring-amber-500/30 focus-visible:outline-none"
+                  className="rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-all duration-200 hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-300 focus-visible:border-amber-500/60 focus-visible:ring-3 focus-visible:ring-amber-500/30 focus-visible:outline-none"
                 >
                   {category.label}
                 </Link>
@@ -270,25 +239,21 @@ const Footer = () => {
                     key={item.label}
                     className="group flex items-start gap-3"
                   >
-                    <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-amber-400 transition-colors group-hover:border-amber-500/40">
+                    <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/4 text-amber-400 transition-colors group-hover:border-amber-500/40">
                       <ContactIcon className="size-4" aria-hidden="true" />
                     </span>
                     <div className="min-w-0">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
                         {item.label}
                       </p>
-                      {item.href ? (
-                        <a
-                          href={item.href}
-                          className="mt-0.5 block text-sm text-zinc-300 transition-colors hover:text-amber-300 focus-visible:text-amber-300 focus-visible:outline-none"
-                        >
-                          {item.value}
-                        </a>
-                      ) : (
-                        <p className="mt-0.5 whitespace-pre-line text-sm leading-5 text-zinc-300">
-                          {item.value}
-                        </p>
-                      )}
+
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        className="mt-0.5 block text-sm text-zinc-300 transition-colors hover:text-amber-300 focus-visible:text-amber-300 focus-visible:outline-none"
+                      >
+                        {item.value}
+                      </a>
                     </div>
                   </div>
                 );
