@@ -5,7 +5,9 @@ import {
   FolderKanban,
   TriangleAlert,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { IService } from "@/library/type";
 
@@ -14,6 +16,50 @@ type ServiceStatsProps = {
   loadError?: boolean;
   pendingRequests?: number;
 };
+
+interface StatCardProps {
+  icon: LucideIcon;
+  iconClassName: string;
+  label: string;
+  value: string;
+  description: string;
+}
+
+function StatCard({
+  icon: Icon,
+  iconClassName,
+  label,
+  value,
+  description,
+}: StatCardProps) {
+  return (
+    <Card className="border-border/70 shadow-sm">
+      <CardHeader className="flex flex-row items-start justify-between pb-1 pr-1">
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            {label}
+          </p>
+          <CardDescription className="text-[11px]">
+            {description}
+          </CardDescription>
+        </div>
+        <span
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-xl",
+            iconClassName,
+          )}
+        >
+          <Icon className="size-4.5" aria-hidden="true" />
+        </span>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <p className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          {value}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function ServiceStats({
   services,
@@ -27,29 +73,38 @@ export function ServiceStats({
     ).length,
   };
 
-  const stats = [
+  const stats: Array<{
+    icon: LucideIcon;
+    iconClassName: string;
+    label: string;
+    value: string;
+    description: string;
+  }> = [
     {
-      label: "Total Services",
-      value: counts.total,
       icon: FolderKanban,
-      tileClass: "bg-muted text-foreground",
-      valueClass: "text-foreground",
+      iconClassName:
+        "border border-sky-500/20 bg-linear-to-br from-sky-500/15 to-sky-500/5 text-sky-600 dark:text-sky-400",
+      label: "Total Services",
+      value: String(counts.total),
+      description: "Repair listings under your account",
     },
     {
-      label: "Approved Services",
-      value: counts.approved,
       icon: BadgeCheck,
-      tileClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-      valueClass: "text-emerald-600 dark:text-emerald-400",
+      iconClassName:
+        "border border-emerald-500/20 bg-linear-to-br from-emerald-500/15 to-emerald-500/5 text-emerald-600 dark:text-emerald-400",
+      label: "Approved Services",
+      value: String(counts.approved),
+      description: "Listed with admin approval",
     },
     {
-      label: "Pending Requests",
-      value: pendingRequests,
       icon: TriangleAlert,
-      tileClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-      valueClass: "text-amber-600 dark:text-amber-400",
+      iconClassName:
+        "border border-amber-500/20 bg-linear-to-br from-amber-500/15 to-amber-500/5 text-amber-600 dark:text-amber-400",
+      label: "Pending Requests",
+      value: String(pendingRequests),
+      description: "Requests awaiting response",
     },
-  ] as const;
+  ];
 
   return (
     <div className="space-y-5">
@@ -67,39 +122,17 @@ export function ServiceStats({
       ) : null}
 
       {/* Summary */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {stats.map((stat) => {
-          const StatIcon = stat.icon;
-
-          return (
-            <div
-              key={stat.label}
-              className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 shadow-xs transition-all duration-200 hover:shadow-sm"
-            >
-              <span
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                  stat.tileClass,
-                )}
-              >
-                <StatIcon className="size-4" aria-hidden="true" />
-              </span>
-              <div className="min-w-0">
-                <p
-                  className={cn(
-                    "text-lg font-bold leading-none tracking-tight",
-                    stat.valueClass,
-                  )}
-                >
-                  {stat.value}
-                </p>
-                <p className="mt-1 truncate text-[11px] font-medium text-muted-foreground">
-                  {stat.label}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.label}
+            icon={stat.icon}
+            iconClassName={stat.iconClassName}
+            label={stat.label}
+            value={stat.value}
+            description={stat.description}
+          />
+        ))}
       </div>
     </div>
   );
