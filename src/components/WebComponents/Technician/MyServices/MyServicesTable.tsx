@@ -70,6 +70,7 @@ import {
 } from "@/library/Action/Services";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 const PRICE_FORMATTER = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -137,9 +138,14 @@ function AvailabilityIndicator({ service }: { service: IService }) {
   const handleAvailabilityChange = async (checked: boolean) => {
     setIsAvailable(checked);
     console.log(`${service.title} isAvailable:`, checked);
-    const result = await UpdateAvailable(service._id as string, {
-      isAvailable: checked,
-    });
+    const token = await getTokenFromClient();
+    const result = await UpdateAvailable(
+      service._id as string,
+      {
+        isAvailable: checked,
+      },
+      token as string,
+    );
 
     if (result.acknowledged) {
       toast.success(
@@ -348,7 +354,12 @@ function EditServiceDialog({
 
     console.log("Updated Service Data:", updatedData);
     onOpenChange(false);
-    const result = await EditService(service._id as string, updatedData);
+    const token = await getTokenFromClient();
+    const result = await EditService(
+      service._id as string,
+      updatedData,
+      token as string,
+    );
     console.log(result);
     if (result.acknowledged) {
       toast.success("Service updated successfully", { position: "top-center" });
@@ -754,7 +765,11 @@ export function MyServicesTable({
   const handleConfirmDelete = async () => {
     if (deletingService) {
       console.log("Delete Service Data:", deletingService);
-      const result = await DeleteService(deletingService._id as string);
+      const token = await getTokenFromClient();
+      const result = await DeleteService(
+        deletingService._id as string,
+        token as string,
+      );
       console.log(result);
 
       if (result.acknowledged) {

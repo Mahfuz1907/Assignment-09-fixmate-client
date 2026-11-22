@@ -41,6 +41,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { IUsers } from "@/library/type";
 import { UpdateRole } from "@/library/Action/Users";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 type RoleType = "customer" | "technician" | "admin";
 
@@ -154,8 +155,12 @@ export function ManageUsersTable({
     }
 
     // Attempt to hit Express / BetterAuth backend endpoint if available
-
-    const result = await UpdateRole(user._id, { role: newRole });
+    const token = await getTokenFromClient();
+    const result = await UpdateRole(
+      user._id,
+      { role: newRole },
+      token as string,
+    );
     if (result.ok || result.success || result.acknowledged) {
       toast.success("Role Updated Successfully", {
         description: `${user.name}'s role changed to ${ROLE_CONFIG[newRole].label}.`,

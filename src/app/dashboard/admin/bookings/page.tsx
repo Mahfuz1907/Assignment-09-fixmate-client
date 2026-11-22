@@ -5,6 +5,7 @@ import { GetAllBookings } from "@/library/Action/Bookings";
 import type { IBookings } from "@/library/type";
 import type { Metadata } from "next";
 import AllBookingsTable from "./AllBookingsTable";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "All Bookings · FixMate Admin",
@@ -49,7 +50,8 @@ function AllBookingsSkeleton() {
 async function AllBookingsSection() {
   let bookings: IBookings[] = [];
   try {
-    bookings = normalizeBookings(await GetAllBookings());
+    const token = await getTokenFromServer();
+    bookings = normalizeBookings(await GetAllBookings(token));
   } catch {
     bookings = [];
   }

@@ -3,11 +3,15 @@ import { ICreateServiceEditData, ICreateServiceFormData } from "../type";
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 // Add Service
-export const AddService = async (data: ICreateServiceFormData) => {
+export const AddService = async (
+  data: ICreateServiceFormData,
+  token: string,
+) => {
   const res = await fetch(`${BASE_URL}/add-service`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   });
@@ -16,8 +20,12 @@ export const AddService = async (data: ICreateServiceFormData) => {
 };
 
 // Get Service Created By Each Technician
-export const GetServiceByTechnician = async (email: string) => {
-  const res = await fetch(`${BASE_URL}/services/technician/${email}`);
+export const GetServiceByTechnician = async (email: string, token: string) => {
+  const res = await fetch(`${BASE_URL}/services/technician/${email}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const result = await res.json();
   return result;
 };
@@ -26,11 +34,13 @@ export const GetServiceByTechnician = async (email: string) => {
 export const UpdateAvailable = async (
   id: string,
   data: { isAvailable: boolean },
+  token: string,
 ) => {
   const res = await fetch(`${BASE_URL}/services/availability/${id}`, {
     method: "PATCH",
     headers: {
       "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ isAvailable: data.isAvailable }),
   });
@@ -39,12 +49,17 @@ export const UpdateAvailable = async (
 };
 
 // Edit Service
-export const EditService = async (id: string, data: ICreateServiceEditData) => {
+export const EditService = async (
+  id: string,
+  data: ICreateServiceEditData,
+  token: string,
+) => {
   const res = await fetch(`${BASE_URL}/service/edit/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
     headers: {
       "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
   const result = await res.json();
@@ -52,17 +67,24 @@ export const EditService = async (id: string, data: ICreateServiceEditData) => {
 };
 
 // Delete Service
-export const DeleteService = async (id: string) => {
+export const DeleteService = async (id: string, token: string) => {
   const res = await fetch(`${BASE_URL}/service/delete/${id}`, {
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
   const result = await res.json();
   return result;
 };
 
 // Get all Services for admin
-export const GetAllServices = async (query = "") => {
-  const res = await fetch(`${BASE_URL}/all-services?${query}`);
+export const GetAllServices = async (query = "", token: string) => {
+  const res = await fetch(`${BASE_URL}/all-services?${query}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const result = await res.json();
   return result;
 };
@@ -71,12 +93,14 @@ export const GetAllServices = async (query = "") => {
 export const UpdateStatus = async (
   id: string,
   data: { approvalStatus: string },
+  token: string,
 ) => {
   const res = await fetch(`${BASE_URL}/services/update-status/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ approvalStatus: data.approvalStatus }),
     headers: {
       "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
   const result = await res.json();

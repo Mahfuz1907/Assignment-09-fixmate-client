@@ -23,6 +23,7 @@ import {
 import { AddBookings, GetBookingsByCustomer } from "@/library/Action/Bookings";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 interface RequestFormModalProps {
   open: boolean;
@@ -136,7 +137,8 @@ export default function RequestFormModal({
 
     console.log(booking);
 
-    const result = await AddBookings(booking);
+    const token = await getTokenFromClient();
+    const result = await AddBookings(booking, token as string);
     console.log(result);
 
     if (result.acknowledged) {

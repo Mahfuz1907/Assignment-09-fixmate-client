@@ -23,6 +23,7 @@ import {
 import type { IBookings } from "@/library/type";
 import { CancelBooking } from "@/library/Action/Bookings";
 import { toast } from "sonner";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -164,7 +165,12 @@ export default function RequestsTable({
       updated,
     });
 
-    const result = await CancelBooking(updated._id, { status: updated.status });
+    const token = await getTokenFromClient();
+    const result = await CancelBooking(
+      updated._id,
+      { status: updated.status },
+      token as string,
+    );
     if (result.acknowledged) {
       toast.success(`${updated.serviceTitle} status is ${updated.status}`, {
         position: "top-center",

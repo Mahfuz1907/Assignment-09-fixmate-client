@@ -6,6 +6,7 @@ import { GetBookingsByCustomer } from "@/library/Action/Bookings";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import type { IBookings } from "@/library/type";
 import { Metadata } from "next";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "My Bookings . FixMate",
@@ -54,8 +55,12 @@ async function BookingsSection() {
 
   let bookings: IBookings[] = [];
   try {
+    const token = await getTokenFromServer();
     bookings = normalizeBookings(
-      await GetBookingsByCustomer((user?.email ?? "") as string),
+      await GetBookingsByCustomer(
+        (user?.email ?? "") as string,
+        token as string,
+      ),
     );
   } catch {
     bookings = [];

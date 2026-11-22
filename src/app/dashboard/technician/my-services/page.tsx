@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { GetServiceByTechnician } from "@/library/Action/Services";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import type { IService } from "@/library/type";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "My Services · FixMate",
@@ -78,7 +79,8 @@ async function ServicesSection() {
 
   if (email) {
     try {
-      const payload = await GetServiceByTechnician(email);
+      const token = await getTokenFromServer();
+      const payload = await GetServiceByTechnician(email, token);
       services = normaliseServices(payload);
     } catch {
       loadError = true;

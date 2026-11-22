@@ -23,6 +23,7 @@ import { GetUsers } from "@/library/Action/Users";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import ActionButton from "./ActionButton";
 import { GetBookingsByCustomer } from "@/library/Action/Bookings";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const instant = false;
 
@@ -67,7 +68,8 @@ async function getTechnicianProfile(
   }
 
   try {
-    const users: unknown = await GetUsers();
+    const token = await getTokenFromServer();
+    const users: unknown = await GetUsers(token);
 
     // const users: unknown = await res.json();
 
@@ -139,7 +141,8 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
   const isHomeVisit = service.serviceMode === "Home Visit";
   const session = await GettingSessionFromServer();
   const user = session?.user as ISessionUser;
-  const allBookings = await GetBookingsByCustomer(user?.email);
+  const token = await getTokenFromServer();
+  const allBookings = await GetBookingsByCustomer(user?.email, token);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10">

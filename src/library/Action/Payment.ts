@@ -3,15 +3,26 @@ import { BookingPaymentPayload, MarkBookingPaidPayload } from "../type";
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 // Get Payments by Customer
-export const GetPaymentsByEachCustomer = async (email: string) => {
-  const res = await fetch(`${BASE_URL}/payments/customer/${email}`);
+export const GetPaymentsByEachCustomer = async (
+  email: string,
+  token: string,
+) => {
+  const res = await fetch(`${BASE_URL}/payments/customer/${email}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const result = await res.json();
   return result;
 };
 
 // Get All Payments
-export const GetAllPayments = async () => {
-  const res = await fetch(`${BASE_URL}/all-payments`);
+export const GetAllPayments = async (token: string) => {
+  const res = await fetch(`${BASE_URL}/all-payments`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const result = await res.json();
   return result;
 };

@@ -4,6 +4,7 @@ import { ManageUsersTable } from "@/components/WebComponents/Admin/Users";
 import { GetUsers } from "@/library/Action/Users";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import type { IUsers } from "@/library/type";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "Manage Users · FixMate Admin",
@@ -49,7 +50,8 @@ async function UsersSection() {
 
   let users: IUsers[] = [];
   try {
-    const rawUsers = await GetUsers();
+    const token = await getTokenFromServer();
+    const rawUsers = await GetUsers(token);
     users = normalizeUsers(rawUsers);
   } catch (err) {
     console.error("Error loading users in admin page:", err);

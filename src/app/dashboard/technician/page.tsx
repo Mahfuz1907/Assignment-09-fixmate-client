@@ -9,6 +9,7 @@ import { PlusCircle } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import React, { Suspense } from "react";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "Technician · FixMate",
@@ -79,9 +80,10 @@ async function ServicesSection() {
 
   if (email) {
     try {
-      const payload = await GetServiceByTechnician(email);
+      const token = await getTokenFromServer();
+      const payload = await GetServiceByTechnician(email, token);
       services = normaliseServices(payload);
-      const rawBookings = await GetBookingsByTechnician(email);
+      const rawBookings = await GetBookingsByTechnician(email, token);
       if (Array.isArray(rawBookings)) {
         bookings = rawBookings as IBookings[];
         pendingRequests = bookings.filter(

@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 import { UpdateStatus } from "@/library/Action/Services";
 import { IService } from "@/library/type";
 import { format } from "date-fns";
@@ -52,7 +53,12 @@ const ManageServicesTable = ({ services, setRefreshTrigger }: ManageTypes) => {
     id: string,
     newStatus: "approved" | "rejected",
   ) => {
-    const result = await UpdateStatus(id, { approvalStatus: newStatus });
+    const token = await getTokenFromClient();
+    const result = await UpdateStatus(
+      id,
+      { approvalStatus: newStatus },
+      token as string,
+    );
 
     if (result.acknowledged) {
       toast.success(`Service ${newStatus}`, { position: "top-center" });

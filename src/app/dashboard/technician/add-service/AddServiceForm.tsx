@@ -37,6 +37,7 @@ import { GettingSessionFromClient } from "@/library/GettingSessions/GetSessionCl
 import Link from "next/link";
 import { AddService } from "@/library/Action/Services";
 import { useRouter } from "next/navigation";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 const CATEGORIES: ServiceCategory[] = [
   "Smartphone",
@@ -259,7 +260,8 @@ const AddServiceForm = () => {
     console.log("=== Add Service Form Data (Pending Admin Approval) ===");
     console.log(newServiceData);
 
-    const result = await AddService(newServiceData);
+    const token = await getTokenFromClient();
+    const result = await AddService(newServiceData, token as string);
     console.log(result);
 
     if (result.ok || result.success || result.acknowledged) {

@@ -6,11 +6,11 @@ import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionSe
 import type { IBookings } from "@/library/type";
 import type { Metadata } from "next";
 import RequestsTable from "./RequestsTable";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "Booking Requests · Technician Dashboard",
-  description:
-    "Review booking requests from customers and track their status.",
+  description: "Review booking requests from customers and track their status.",
 };
 
 function normalizeBookings(payload: unknown): IBookings[] {
@@ -53,8 +53,12 @@ async function RequestsSection() {
 
   let bookings: IBookings[] = [];
   try {
+    const token = await getTokenFromServer();
     bookings = normalizeBookings(
-      await GetBookingsByTechnician((user?.email ?? "") as string),
+      await GetBookingsByTechnician(
+        (user?.email ?? "") as string,
+        token as string,
+      ),
     );
   } catch {
     bookings = [];

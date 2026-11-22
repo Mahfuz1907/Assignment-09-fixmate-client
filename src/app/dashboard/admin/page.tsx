@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { cn } from "cn";
 import OverviewCharts from "./OverviewCharts";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard · FixMate Admin",
@@ -81,12 +82,13 @@ function StatCard({
 }
 
 const AdminDashboard = async () => {
-  const allUsers = await GetUsers();
+  const token = await getTokenFromServer();
+  const allUsers = await GetUsers(token);
   const allTechnicians = allUsers.filter(
     (user: IUsers) => user.role === "technician",
   );
-  const allServices = await GetAllServices();
-  const bookings = normalizeBookings(await GetAllBookings());
+  const allServices = await GetAllServices("", token);
+  const bookings = normalizeBookings(await GetAllBookings(token));
   const pendingServices = allServices.filter(
     (service: IService) => service.approvalStatus === "pending",
   );

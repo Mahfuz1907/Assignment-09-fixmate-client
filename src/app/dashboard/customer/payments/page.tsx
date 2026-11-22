@@ -21,6 +21,7 @@ import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionSe
 import type { IBookings, IPayments } from "@/library/type";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "My Payments · FixMate",
@@ -111,10 +112,7 @@ function PaymentsSkeleton() {
         <div className="h-12 animate-pulse rounded-2xl bg-muted" />
         <div className="mt-6 space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-10 animate-pulse rounded-xl bg-muted"
-            />
+            <div key={i} className="h-10 animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
       </CardContent>
@@ -129,13 +127,17 @@ async function MyPaymentsSection() {
 
   let paymentRows: PaymentRow[] = [];
   try {
+    const token = await getTokenFromServer();
     const [payments, bookings] = await Promise.all([
-      GetPaymentsByEachCustomer(email),
-      GetBookingsByCustomer(email),
+      GetPaymentsByEachCustomer(email, token),
+      GetBookingsByCustomer(email, token),
     ]);
     const normalizedPayments = normalizePayments(payments);
     const normalizedBookings = normalizeBookings(bookings);
-    const bookingByPayment = new Map<string, (typeof normalizedBookings)[number]>();
+    const bookingByPayment = new Map<
+      string,
+      (typeof normalizedBookings)[number]
+    >();
     for (const booking of normalizedBookings) {
       bookingByPayment.set(String(booking._id), booking);
     }
@@ -149,7 +151,10 @@ async function MyPaymentsSection() {
           booking?.serviceTitle ?? payment.serviceTitle ?? "Not available",
         technicianName:
           booking?.technicianName ?? payment.technicianName ?? "—",
-        amount: payment.amount ?? (payment as { amountPaid?: number }).amountPaid ?? 0,
+        amount:
+          payment.amount ??
+          (payment as { amountPaid?: number }).amountPaid ??
+          0,
         transactionId: payment.transactionId ?? "",
         paidAt: payment.paidAt ?? "—",
       };

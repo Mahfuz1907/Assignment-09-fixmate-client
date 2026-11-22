@@ -30,6 +30,7 @@ import type { IBookings } from "@/library/type";
 import { CancelBooking } from "@/library/Action/Bookings";
 import { toast } from "sonner";
 import PayBookingButton from "@/components/Payment/PayBookingButton";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 export function formatDate(value: Date | string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -239,7 +240,12 @@ export default function BookingsTable({
 
   const handleCancel = async (booking: IBookings) => {
     const nextStatus = "cancelled";
-    const result = await CancelBooking(booking._id, { status: nextStatus });
+    const token = await getTokenFromClient();
+    const result = await CancelBooking(
+      booking._id,
+      { status: nextStatus },
+      token as string,
+    );
 
     if (result.acknowledged) {
       toast.success(`${booking.serviceTitle} booking is cancelled!`, {

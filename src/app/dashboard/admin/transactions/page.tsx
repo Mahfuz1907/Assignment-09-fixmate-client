@@ -1,4 +1,5 @@
 import { GetAllBookings } from "@/library/Action/Bookings";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 import { GetAllPayments } from "@/library/Action/Payment";
 import type { IBookings, IPayments } from "@/library/type";
 import { Wallet } from "lucide-react";
@@ -6,8 +7,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "All Transactions · FixMate Admin",
-  description:
-    "Read-only overview of every payment made across the platform.",
+  description: "Read-only overview of every payment made across the platform.",
 };
 
 interface PaymentRow {
@@ -117,10 +117,11 @@ const TransactionsPage = async () => {
   let bookings: IBookings[] = [];
 
   try {
-    const paymentsObject = await GetAllPayments();
+    const token = await getTokenFromServer();
+    const paymentsObject = await GetAllPayments(token);
     payments = normalizePayments(paymentsObject.payments);
     totalRevenue = paymentsObject.totalRevenue ?? 0;
-    bookings = normalizeBookings(await GetAllBookings());
+    bookings = normalizeBookings(await GetAllBookings(token));
   } catch {
     payments = [];
     totalRevenue = 0;
@@ -208,7 +209,10 @@ const TransactionsPage = async () => {
                   </p>
                 </td>
                 <td className="p-4 align-middle">
-                  <TruncateText text={row.serviceTitle} className="text-foreground" />
+                  <TruncateText
+                    text={row.serviceTitle}
+                    className="text-foreground"
+                  />
                 </td>
                 <td className="whitespace-nowrap p-4 align-middle font-semibold text-foreground">
                   {formatAmount(row.amount)}

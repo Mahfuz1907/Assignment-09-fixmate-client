@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { IService } from "@/library/type";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 const Services = () => {
   const [services, setServices] = useState<IService[]>([]);
@@ -24,7 +25,8 @@ const Services = () => {
 
   useEffect(() => {
     const fetchServices = async () => {
-      const res = await GetAllServices(query);
+      const token = await getTokenFromClient();
+      const res = await GetAllServices(query, token as string);
       setServices(res);
     };
 

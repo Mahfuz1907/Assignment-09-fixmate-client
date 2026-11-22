@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import { CircleDot, SquareCheck, StickyNote } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 import CustomerOverviewCharts from "./CustomerOverviewCharts";
 import { GetBookingsByCustomer } from "@/library/Action/Bookings";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import type { IBookings } from "@/library/type";
 import { cn } from "@/lib/utils";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "Customer Dashboard · FixMate",
@@ -79,7 +85,10 @@ const CustomerDashboard = async () => {
 
   let bookings: IBookings[] = [];
   try {
-    bookings = normalizeBookings(await GetBookingsByCustomer(user?.email as string));
+    const token = await getTokenFromServer();
+    bookings = normalizeBookings(
+      await GetBookingsByCustomer(user?.email as string, token),
+    );
   } catch {
     bookings = [];
   }
