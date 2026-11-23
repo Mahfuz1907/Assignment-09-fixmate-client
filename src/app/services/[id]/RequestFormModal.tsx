@@ -20,7 +20,7 @@ import {
   IService,
   ISessionUser,
 } from "@/library/type";
-import { AddBookings, GetBookingsByCustomer } from "@/library/Action/Bookings";
+import { AddBookings } from "@/library/Action/Bookings";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
@@ -77,7 +77,6 @@ export default function RequestFormModal({
   });
 
   const router = useRouter();
-  const activeStatuses = ["requested", "accepted", "in-progress"];
 
   const setField = (key: RequestFormErrorKey, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));

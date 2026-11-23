@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { MarkBookingPaid } from "@/library/Action/Payment";
 import PaymentSuccessCard from "./PaymentSuccessCard";
 import type { Metadata } from "next";
+import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const metadata: Metadata = {
   title: "Payment Successful · FixMate",

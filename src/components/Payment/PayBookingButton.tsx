@@ -3,6 +3,7 @@
 import { GivePayment } from "@/library/Action/Payment";
 import { useState } from "react";
 import { Button } from "../ui/button";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
 
 type PayBookingButtonProps = {
   bookingId: string;

@@ -4,21 +4,38 @@ import { Button } from "@/components/ui/button";
 import { IBookings, IService, ISessionUser } from "@/library/type";
 import { ArrowRight } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RequestFormModal from "./RequestFormModal";
 import { toast } from "sonner";
+import { getTokenFromClient } from "@/library/Action/GettingTokens/GettingTokenFromClient";
+import { GetBookingsByCustomer } from "@/library/Action/Bookings";
 
 interface ActionButtonType {
   service: IService;
   user: ISessionUser;
-  allBookings: IBookings[];
 }
 
-const ActionButton = ({ service, user, allBookings }: ActionButtonType) => {
+const ActionButton = ({ service, user }: ActionButtonType) => {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [allBookings, setAllBookings] = useState([]);
+
   const activeStatuses = ["requested", "accepted", "in-progress"];
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      const token = await getTokenFromClient();
+      const result = await GetBookingsByCustomer(
+        user?.email as string,
+        token as string,
+      );
+
+      setAllBookings(result);
+    };
+    fetchBookings();
+  }, [user]);
+
   const isAlreadyBooked = allBookings.some(
     (book: IBookings) =>
       book.serviceId === service._id && activeStatuses.includes(book.status),

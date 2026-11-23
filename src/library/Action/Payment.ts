@@ -34,7 +34,9 @@ export const GivePayment = async (
 ) => {
   const res = await fetch("/api/checkout_sessions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({ id, amount, serviceTitle }),
   });
 
@@ -48,7 +50,9 @@ export const MarkBookingPaid = async (
 ) => {
   const res = await fetch(`${BASE_URL}/api/bookings/${bookingId}/pay`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
   });
 
@@ -65,7 +69,9 @@ export const markBookingPaidFromWebhook = async ({
 }: MarkBookingPaidPayload) => {
   const res = await fetch(`${BASE_URL}/api/bookings/${bookingId}/pay`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       paymentStatus,
       transactionId,

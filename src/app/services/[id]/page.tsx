@@ -22,7 +22,6 @@ import type { IService, ISessionUser, IUsers } from "@/library/type";
 import { GetUsers } from "@/library/Action/Users";
 import { GettingSessionFromServer } from "@/library/GettingSessions/GetSessionServer";
 import ActionButton from "./ActionButton";
-import { GetBookingsByCustomer } from "@/library/Action/Bookings";
 import { getTokenFromServer } from "@/library/Action/GettingTokens/GettingTokenFromServer";
 
 export const instant = false;
@@ -122,7 +121,7 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
   let service: IService | null = null;
 
   try {
-    const result: unknown = await GetServiceDetails(id);
+    const result = await GetServiceDetails(id);
     service = isService(result) ? result : null;
   } catch {
     service = null;
@@ -141,8 +140,6 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
   const isHomeVisit = service.serviceMode === "Home Visit";
   const session = await GettingSessionFromServer();
   const user = session?.user as ISessionUser;
-  const token = await getTokenFromServer();
-  const allBookings = await GetBookingsByCustomer(user?.email, token);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
@@ -278,11 +275,7 @@ async function ServiceDetailsPage({ params }: ServiceDetailsPageProps) {
 
             {/* button here */}
 
-            <ActionButton
-              service={service}
-              user={user}
-              allBookings={allBookings}
-            />
+            <ActionButton service={service} user={user} />
             <p className="mt-2 text-center text-[11px] text-muted-foreground">
               No payment until the technician confirms your request.
             </p>

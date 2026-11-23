@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
         bookingId: String(bookingId),
         userId: body.userId ? String(body.userId) : "",
       },
-      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/payment-cancelled`,
+      success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/payment/cancel`,
       customer_email: body.email || undefined,
     });
 
